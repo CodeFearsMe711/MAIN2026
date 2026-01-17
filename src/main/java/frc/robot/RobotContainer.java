@@ -26,6 +26,7 @@ import frc.robot.subsystems.IntakeArmSubsystem;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.LumenLightsSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -53,6 +54,7 @@ private final CommandXboxController c_operatorController =
     private final IntakeCommand m_intakeCommand = new IntakeCommand(m_intakeSubsystem, 5.0);
     private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
     private final IntakeArmCommand m_intakeArmCommand = new IntakeArmCommand(m_intakeArmSubsystem, 90.0); // Example target angle of 90 degrees
+    private final LumenLightsSubsystem m_lumenLights = new LumenLightsSubsystem();
 
     public RobotContainer() {
         configureBindings();
@@ -93,14 +95,13 @@ private final CommandXboxController c_operatorController =
         joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-
-
-
-
+        
+        
+        
         // Run the speed-based RPS command while the A button is held (example: 5.0 RPS)
     m_driverController.a().whileTrue(m_intakeCommand);
-    //m_driverController.a().onTrue(new InstantCommand(() -> m_armSubsystem.setGoalDegrees(0.0), arm));
-    //m_driverController.b().onTrue(new InstantCommand(() -> m_armSubsystem.setGoalDegrees(90.0), arm));
+    m_driverController.b().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(0.0), m_intakeArmSubsystem));
+    m_driverController.x().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(90.0), m_intakeArmSubsystem));
 }
     
 

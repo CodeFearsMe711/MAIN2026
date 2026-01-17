@@ -13,4 +13,12 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     public static final int cDriverControllerPort = 1;
   }
+  
+  /** LED related constants */
+  public static class Lights {
+    // PWM port on the roboRIO for AddressableLED (change to your port)
+    public static final int kLedPort = 9;
+    // Number of LEDs in the strip
+    public static final int kLedLength = 60;
+  }
 }
