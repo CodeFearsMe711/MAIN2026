@@ -22,11 +22,14 @@ import frc.robot.commands.IntakeCommand;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.commands.IntakeArmCommand;
 import frc.robot.subsystems.IntakeArmSubsystem;
-
-
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LumenLightsSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.SmartDashboardSubsytem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -55,7 +58,9 @@ private final CommandXboxController c_operatorController =
     private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
     private final IntakeArmCommand m_intakeArmCommand = new IntakeArmCommand(m_intakeArmSubsystem, 90.0); // Example target angle of 90 degrees
     private final LumenLightsSubsystem m_lumenLights = new LumenLightsSubsystem();
-
+    private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
+    private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
+    private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
     public RobotContainer() {
         configureBindings();
     }
@@ -71,7 +76,7 @@ private final CommandXboxController c_operatorController =
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-
+                    SmartDashboard.putData("Auto Chooser" , new SendableChooser<Command>());
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
