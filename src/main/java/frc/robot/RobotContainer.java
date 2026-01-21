@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.PhotonVisionSubsytem;
 import frc.robot.subsystems.LumenLightsSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
@@ -61,6 +62,8 @@ private final CommandXboxController c_operatorController =
     private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
     private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
     private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
+    // PhotonVision subsystem (camera name used by PhotonVision server)
+    private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem("PhotonVision Cam1");
     public RobotContainer() {
         configureBindings();
     }
@@ -100,6 +103,22 @@ private final CommandXboxController c_operatorController =
         joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        // SmartDashboard tuning entries for PhotonVision aim
+        SmartDashboard.putNumber("Photon/AimP", 3.0);
+        SmartDashboard.putNumber("Photon/Latency", 0.05);
+        SmartDashboard.putString("Photon/CameraName", "PhotonVision Cam1");
+
+        // Named command: aim while preserving translation from the left stick
+        var aimCmd = new frc.robot.commands.AimAtAprilTagCommand(
+            drivetrain,
+            m_photonVision,
+            () -> -joystick.getLeftY() * MaxSpeed,
+            () -> -joystick.getLeftX() * MaxSpeed,
+            MaxAngularRate
+        );
+
+        m_driverController.rightBumper().whileTrue(aimCmd);
         
         
         
