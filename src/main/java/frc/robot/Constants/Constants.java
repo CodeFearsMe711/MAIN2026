@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.Constants;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean

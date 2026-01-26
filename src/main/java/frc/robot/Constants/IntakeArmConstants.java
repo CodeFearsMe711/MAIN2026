@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.Constants;
 
 public final class IntakeArmConstants {
   private IntakeArmConstants() {}

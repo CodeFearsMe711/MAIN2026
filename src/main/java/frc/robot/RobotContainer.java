@@ -16,20 +16,21 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Constants;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.IntakeCommand;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.commands.IntakeArmCommand;
-import frc.robot.subsystems.IntakeArmSubsystem;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Constants.OperatorConstants;
+import frc.robot.SWERVE.CommandSwerveDrivetrain;
+import frc.robot.SWERVE.Telemetry;
+import frc.robot.SWERVE.TunerConstants;
+import frc.robot.commands.Intake.IntakeArmCommand;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.ClimberSubsystem;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.LumenLightsSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
+import frc.robot.subsystems.Climber.ClimberSubsystem;
+import frc.robot.subsystems.Intake.IntakeArmSubsystem;
+import frc.robot.subsystems.Intake.IntakeSubsystem;
+import frc.robot.subsystems.LEDS.LumenLightsSubsystem;
+import frc.robot.subsystems.Shooter.ShooterSubsystem;
+import frc.robot.commands.Shooter.ShooterCommand;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -54,13 +55,15 @@ private final CommandXboxController c_operatorController =
 
     // Subsystems and commands
     private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
-    private final IntakeCommand m_intakeCommand = new IntakeCommand(m_intakeSubsystem, 5.0);
     private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
     private final IntakeArmCommand m_intakeArmCommand = new IntakeArmCommand(m_intakeArmSubsystem, 90.0); // Example target angle of 90 degrees
     private final LumenLightsSubsystem m_lumenLights = new LumenLightsSubsystem();
     private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
     private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
-    private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
+    private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem(); 
+    //private final ShooterCommand m_ShooterCommand = new ShooterCommand(m_shootersubsystem, MaxAngularRate);
+    // PhotonVision subsystem (camera name used by PhotonVision server)
+   //private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem("PhotonVision Cam1");
     public RobotContainer() {
         configureBindings();
     }
@@ -103,10 +106,29 @@ private final CommandXboxController c_operatorController =
         
         
         
-        // Run the speed-based RPS command while the A button is held (example: 5.0 RPS)
-    m_driverController.a().whileTrue(m_intakeCommand);
-    m_driverController.b().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(0.0), m_intakeArmSubsystem));
-    m_driverController.x().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(90.0), m_intakeArmSubsystem));
+        // Run the intake at the RPS chosen on SmartDashboard while the A button is held.
+        // SmartDashboard key: "Intake/TargetRPS"
+        SmartDashboard.putNumber("Intake/TargetRPS", 10);
+        // Use runEnd so we explicitly stop the subsystem when the button is released.
+        m_driverController.x().whileTrue(
+            Commands.runEnd(
+                () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
+                () -> m_intakeSubsystem.stop(),
+                m_intakeSubsystem
+            )
+        );
+
+        SmartDashboard.putNumber("Shooter/TargetRPS", 15);
+        // Run shooter; negative RPS will spin backwards
+        m_driverController.y().whileTrue(
+            Commands.runEnd(
+                () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
+                () -> m_shootersubsystem.stop(),
+                m_shootersubsystem
+            )
+        );
+    //m_driverController.b().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(0.0), m_intakeArmSubsystem));
+    //m_driverController.x().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(90.0), m_intakeArmSubsystem));
 }
     
 

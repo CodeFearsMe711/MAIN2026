@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.LEDS;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import java.util.Optional;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.Constants;
 
 /**
  * Simple lights subsystem that sets the entire LED strip to the alliance color.

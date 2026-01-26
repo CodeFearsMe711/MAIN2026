@@ -1,23 +1,17 @@
-package frc.robot.commands;
+package frc.robot.commands.Shooter;
 
-import frc.robot.subsystems.IntakeSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.Intake.IntakeSubsystem;
+import frc.robot.subsystems.Shooter.ShooterSubsystem;
 
-/** A command that runs the IntakeSubsystem at a given rotations-per-second. */
-public class IntakeCommand extends Command {
-  private final IntakeSubsystem m_subsystem;
+public class ShooterCommand extends Command {
+   private final ShooterSubsystem m_subsystem;
   private final double m_targetRPS;
 
-  /**
-   * Create a new SpeedBasedRPSCommand.
-   *
-   * @param subsystem the subsystem to control
-   * @param targetRPS target rotations per second to command
-   */
-  public IntakeCommand(IntakeSubsystem subsystem, double targetRPS) {
+  
+  public ShooterCommand(ShooterSubsystem subsystem, double targetRPS) {
     m_subsystem = subsystem;
     m_targetRPS = targetRPS;
-    // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(subsystem);
   }
 
