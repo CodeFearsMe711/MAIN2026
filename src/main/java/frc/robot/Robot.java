@@ -9,11 +9,11 @@ import com.ctre.phoenix6.HootAutoReplay;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-
+import frc.robot.subsystems.LEDS.ConnectorXLeds;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
-
+    private ConnectorXLeds leds;
     private final RobotContainer m_robotContainer;
 
     /* log and replay timestamp and joystick data */
@@ -81,4 +81,10 @@ public class Robot extends TimedRobot {
 
     @Override
     public void simulationPeriodic() {}
+
+    @Override
+public void robotInit() {
+  leds = new frc.robot.subsystems.LEDS.ConnectorXLeds();
+  leds.start();
+}
 }

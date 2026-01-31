@@ -28,7 +28,7 @@ import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
 import frc.robot.subsystems.Intake.IntakeArmSubsystem;
 import frc.robot.subsystems.Intake.IntakeSubsystem;
-import frc.robot.subsystems.LEDS.LumenLightsSubsystem;
+import frc.robot.subsystems.LEDS.ConnectorXLeds;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.commands.Shooter.ShooterCommand;
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
@@ -59,7 +59,7 @@ private final CommandXboxController c_operatorController =
     private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
     private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
     private final IntakeArmCommand m_intakeArmCommand = new IntakeArmCommand(m_intakeArmSubsystem, 90.0); // Example target angle of 90 degrees
-    private final LumenLightsSubsystem m_lumenLights = new LumenLightsSubsystem();
+    private final ConnectorXLeds m_lumenLights = new ConnectorXLeds();
     private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
     private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
     private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem(); 
@@ -68,7 +68,9 @@ private final CommandXboxController c_operatorController =
     // PhotonVision subsystem (camera name used by PhotonVision server)
    //private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem("PhotonVision Cam1");
     public RobotContainer() {
+       
         configureBindings();
+        // m_lumenLights.startUpAndTurnOn();
     }
 
     private void configureBindings() {
