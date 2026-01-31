@@ -31,6 +31,8 @@ import frc.robot.subsystems.Intake.IntakeSubsystem;
 import frc.robot.subsystems.LEDS.LumenLightsSubsystem;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.commands.Shooter.ShooterCommand;
+import frc.robot.subsystems.Agitator.AgitatorSubsystem;
+import frc.robot.commands.Agitator.AgitatorCommand;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -61,6 +63,7 @@ private final CommandXboxController c_operatorController =
     private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
     private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
     private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem(); 
+    private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
     //private final ShooterCommand m_ShooterCommand = new ShooterCommand(m_shootersubsystem, MaxAngularRate);
     // PhotonVision subsystem (camera name used by PhotonVision server)
    //private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem("PhotonVision Cam1");
@@ -87,10 +90,10 @@ private final CommandXboxController c_operatorController =
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+      //  joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        // joystick.b().whileTrue(drivetrain.applyRequest(() ->
+        //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
+        // ));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -125,6 +128,15 @@ private final CommandXboxController c_operatorController =
                 () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
                 () -> m_shootersubsystem.stop(),
                 m_shootersubsystem
+            )
+        );
+        SmartDashboard.putNumber("Agitator/TargetRPS", 15);
+
+        m_driverController.a().whileTrue(
+            Commands.runEnd(
+                () -> m_agitatorsubsystem.setRPS(SmartDashboard.getNumber("Agitator/TargetRPS", 0)),
+                () -> m_agitatorsubsystem.stop(),
+                m_agitatorsubsystem
             )
         );
     //m_driverController.b().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(0.0), m_intakeArmSubsystem));

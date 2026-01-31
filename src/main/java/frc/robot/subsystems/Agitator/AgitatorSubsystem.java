@@ -5,7 +5,9 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 public class AgitatorSubsystem extends SubsystemBase {
+
   private final TalonFX motor = new TalonFX(32);
   private final VelocityVoltage velocityReq = new VelocityVoltage(0);
 
