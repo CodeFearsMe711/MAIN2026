@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class AgitatorSubsystem extends SubsystemBase {
 
-  private final TalonFX motor = new TalonFX(32);
+  private final TalonFX motor = new TalonFX(35);
   private final VelocityVoltage velocityReq = new VelocityVoltage(0);
 
   public AgitatorSubsystem() {

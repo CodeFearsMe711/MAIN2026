@@ -141,8 +141,14 @@ private final CommandXboxController c_operatorController =
                 m_agitatorsubsystem
             )
         );
-    //m_driverController.b().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(0.0), m_intakeArmSubsystem));
-    //m_driverController.x().onTrue(new InstantCommand(() -> m_intakeArmSubsystem.setGoalDegrees(90.0), m_intakeArmSubsystem));
+
+        
+       m_driverController.rightBumper()
+    .onTrue(new IntakeArmCommand(m_intakeArmSubsystem, 0.0));
+
+       m_driverController.leftBumper()
+    .onTrue(new IntakeArmCommand(m_intakeArmSubsystem, 90.0));
+
 }
     
 
