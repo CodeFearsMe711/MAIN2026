@@ -30,7 +30,7 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
     TalonFXConfiguration cfg = new TalonFXConfiguration();
 
-    cfg.Slot0.kP = 0.12;
+    cfg.Slot0.kP = 0.01;
     cfg.Slot0.kI = 0.0;
     cfg.Slot0.kD = 0.0;
     cfg.Slot0.kV = 0.12;
