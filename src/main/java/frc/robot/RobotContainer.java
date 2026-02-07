@@ -40,6 +40,8 @@ import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
+import frc.robot.subsystems.BEATz;
+
 
 import com.pathplanner.lib.auto.NamedCommands;
 import frc.robot.commands.NamedCommands.*;
@@ -56,6 +58,10 @@ public class RobotContainer {
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   @SuppressWarnings("unused")
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+  @SuppressWarnings("unused")
+  private final BEATz m_BEATz = new BEATz();
+
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final CommandXboxController joystick = new CommandXboxController(0);
@@ -161,7 +167,7 @@ private void configureNamedCommands() {
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // Intake RPS
-    SmartDashboard.putNumber("Intake/TargetRPS", 10);
+    SmartDashboard.putNumber("Intake/TargetRPS", 60);
     m_driverController.x().whileTrue(
         Commands.runEnd(
             () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
@@ -169,7 +175,7 @@ private void configureNamedCommands() {
             m_intakeSubsystem));
 
     // Shooter RPS
-    SmartDashboard.putNumber("Shooter/TargetRPS", 15);
+    SmartDashboard.putNumber("Shooter/TargetRPS", 160);
     m_driverController.y().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
@@ -177,7 +183,7 @@ private void configureNamedCommands() {
             m_shootersubsystem));
 
     // Shooter feeder RPS        
-    SmartDashboard.putNumber("Shooter/FeedRPS", 10);
+    SmartDashboard.putNumber("Shooter/FeedRPS", 35);
     m_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_shooterFeederSubsytem.setRPS(SmartDashboard.getNumber("Shooter/FeedRPS", 0)),
@@ -185,7 +191,7 @@ private void configureNamedCommands() {
             m_shooterFeederSubsytem));
 
     // Agitator RPS
-    SmartDashboard.putNumber("Agitator/TargetRPS", 15);
+    SmartDashboard.putNumber("Agitator/TargetRPS", 35);
     m_driverController.a().whileTrue(
         Commands.runEnd(
             () -> m_agitatorsubsystem.setRPS(SmartDashboard.getNumber("Agitator/TargetRPS", 0)),

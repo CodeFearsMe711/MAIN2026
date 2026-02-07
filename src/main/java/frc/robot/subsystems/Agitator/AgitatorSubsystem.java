@@ -24,7 +24,7 @@ public class AgitatorSubsystem extends SubsystemBase {
 
   // Command motor speed in rotations per second
   public void setRPS(double rps) {
-    motor.setControl(velocityReq.withVelocity(rps));
+    motor.setControl(velocityReq.withVelocity(-rps));
   }
 
   public void stop() {
