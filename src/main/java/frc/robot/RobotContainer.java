@@ -39,7 +39,7 @@ import frc.robot.subsystems.LEDS.ConnectorXLeds;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
-
+import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
 public class RobotContainer {
   private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
@@ -77,7 +77,7 @@ public class RobotContainer {
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
   private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem();
   private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
-
+  private final ShooterFeederSubsytem m_shooterFeederSubsytem = new ShooterFeederSubsytem();
   // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
 
@@ -142,6 +142,14 @@ public class RobotContainer {
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
             () -> m_shootersubsystem.stop(),
             m_shootersubsystem));
+
+    // Shooter feeder RPS        
+    SmartDashboard.putNumber("Shooter/FeedRPS", 10);
+    m_driverController.rightBumper().whileTrue(
+        Commands.runEnd(
+            () -> m_shooterFeederSubsytem.setRPS(SmartDashboard.getNumber("Shooter/FeedRPS", 0)),
+            () -> m_shooterFeederSubsytem.stop(),
+            m_shooterFeederSubsytem));
 
     // Agitator RPS
     SmartDashboard.putNumber("Agitator/TargetRPS", 15);
