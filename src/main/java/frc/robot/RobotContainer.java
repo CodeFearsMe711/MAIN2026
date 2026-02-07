@@ -40,6 +40,10 @@ import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
+
+import com.pathplanner.lib.auto.NamedCommands;
+import frc.robot.commands.NamedCommands.*;
+
 public class RobotContainer {
   private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
@@ -96,9 +100,38 @@ public class RobotContainer {
       new PIDController(VisionConstants.kAimKp, VisionConstants.kAimKi, VisionConstants.kAimKd);
 
   public RobotContainer() {
+    configureNamedCommands();
+
     m_aimPid.enableContinuousInput(-Math.PI, Math.PI);
     configureBindings();
   }
+private void configureNamedCommands() {
+
+  NamedCommands.registerCommand(
+      "Shooter system",
+      new NamedShooter(m_shootersubsystem)
+  );
+
+  NamedCommands.registerCommand(
+      "Shooter feed",
+      new NamedShooterFeed(m_shooterFeederSubsytem)
+  );
+
+  NamedCommands.registerCommand(
+      "agitater",
+      new NamedAgitator(m_agitatorsubsystem)
+  );
+
+  NamedCommands.registerCommand(
+      "intake arm",
+      new NamedIntakeArm(m_intakeArmSubsystem)
+  );
+
+  NamedCommands.registerCommand(
+      "intake",
+      new NamedIntake(m_intakeSubsystem)
+  );
+}
 
   private static double clamp(double x, double lo, double hi) {
     return Math.max(lo, Math.min(hi, x));
