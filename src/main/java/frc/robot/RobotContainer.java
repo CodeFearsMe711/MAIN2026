@@ -77,6 +77,9 @@ public class RobotContainer {
   // Subsystems
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
+ 
+
+
   @SuppressWarnings("unused")
   private final IntakeArmCommand m_intakeArmCommand = new IntakeArmCommand(m_intakeArmSubsystem, 90.0);
   @SuppressWarnings("unused")
@@ -105,6 +108,7 @@ public class RobotContainer {
   private final PIDController m_aimPid =
       new PIDController(VisionConstants.kAimKp, VisionConstants.kAimKi, VisionConstants.kAimKd);
 
+      
   public RobotContainer() {
     configureNamedCommands();
 
@@ -184,7 +188,7 @@ private void configureNamedCommands() {
 
     // Shooter feeder RPS        
     SmartDashboard.putNumber("Shooter/FeedRPS", 35);
-    m_driverController.rightBumper().whileTrue(
+   m_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_shooterFeederSubsytem.setRPS(SmartDashboard.getNumber("Shooter/FeedRPS", 0)),
             () -> m_shooterFeederSubsytem.stop(),
@@ -192,15 +196,17 @@ private void configureNamedCommands() {
 
     // Agitator RPS
     SmartDashboard.putNumber("Agitator/TargetRPS", 35);
-    m_driverController.a().whileTrue(
+    m_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_agitatorsubsystem.setRPS(SmartDashboard.getNumber("Agitator/TargetRPS", 0)),
             () -> m_agitatorsubsystem.stop(),
             m_agitatorsubsystem));
 
     // Intake arm presets
-    c_operatorController.rightBumper().onTrue(new IntakeArmCommand(m_intakeArmSubsystem, 0.0));
-    c_operatorController.leftBumper().onTrue(new IntakeArmCommand(m_intakeArmSubsystem, 90.0));
+    c_operatorController.leftBumper()
+    .onTrue(new IntakeArmCommand(m_intakeArmSubsystem, -45.0))
+    .onFalse(Commands.runOnce(m_intakeArmSubsystem::setGoalZero, m_intakeArmSubsystem));
+
 
     // =========================
     // AIM ASSIST

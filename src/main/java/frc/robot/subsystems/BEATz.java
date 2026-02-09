@@ -36,7 +36,7 @@ public class BEATz extends SubsystemBase {
     add(35, "");
     add(36, "");
 
-    orchestra.loadMusic("Imperial March.chrp");
+    orchestra.loadMusic("EnableBeatz.chrp");
     orchestra.play();
   }
 

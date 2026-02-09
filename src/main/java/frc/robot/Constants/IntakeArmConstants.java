@@ -8,15 +8,15 @@ public final class IntakeArmConstants {
 
   // motorRotations = armRotations × kMotorRotationsPerArmRotation
   // 1:1 for now. If you later have 25:1 motor:arm, set to 25.0
-  public static final double kMotorRotationsPerArmRotation = 1.0;
+  public static final double kMotorRotationsPerArmRotation = 27.0;
 
   // Editable setpoints (ARM/OUTPUT degrees)
   public static final double kPosDegA = 0.0;
   public static final double kPosDegB = 90.0;
 
   // Motion constraints at ARM/OUTPUT
-  public static final double kCruiseRps_Arm = 10;
-  public static final double kAccelRps2_Arm = 10;
+  public static final double kCruiseRps_Arm = 1;
+  public static final double kAccelRps2_Arm = 1;
 
   // Tune these
   public static final double kP = 50.0;

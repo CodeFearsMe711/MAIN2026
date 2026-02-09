@@ -13,6 +13,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private final MotionMagicVoltage mm = new MotionMagicVoltage(0.0);
 
   private double goalMotorRot = 0.0;
+  private boolean hasSoftZeroed = false;
 
   public IntakeArmSubsystem() {
     motor.setNeutralMode(NeutralModeValue.Brake);
@@ -28,17 +29,29 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
     motor.getConfigurator().apply(cfg);
 
-    goalMotorRot = getMotorRotations(); // hold wherever we start
+    // Do NOT set goal here based on sensor value.
+    // We will "soft zero" once on startup in periodic.
   }
 
   @Override
   public void periodic() {
-    // Always hold the last goal to prevent sagging
+    // Soft-zero once after startup (makes "wherever we boot" = 0)
+    if (!hasSoftZeroed) {
+      motor.setPosition(0);
+      goalMotorRot = 0.0;
+      hasSoftZeroed = true;
+    }
+
+    // Always hold the goal
     motor.setControl(mm.withPosition(goalMotorRot));
   }
 
   public void setGoalDegrees(double armDeg) {
     goalMotorRot = degreesToMotorRotations(armDeg);
+  }
+
+  public void setGoalZero() {
+    goalMotorRot = 0.0;
   }
 
   public double getDegrees() {
