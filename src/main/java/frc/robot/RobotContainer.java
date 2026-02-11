@@ -40,7 +40,7 @@ import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
-import frc.robot.subsystems.BEATz;
+//import frc.robot.subsystems.BEATz;
 
 
 import com.pathplanner.lib.auto.NamedCommands;
@@ -59,8 +59,8 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
-  @SuppressWarnings("unused")
-  private final BEATz m_BEATz = new BEATz();
+ // @SuppressWarnings("unused")
+ // private final BEATz m_BEATz = new BEATz();
 
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
@@ -171,7 +171,7 @@ private void configureNamedCommands() {
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // Intake RPS
-    SmartDashboard.putNumber("Intake/TargetRPS", 60);
+    SmartDashboard.putNumber("Intake/TargetRPS", 40);
     m_driverController.x().whileTrue(
         Commands.runEnd(
             () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
