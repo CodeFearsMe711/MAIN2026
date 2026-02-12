@@ -27,10 +27,12 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.Constants.Constants.OperatorConstants;
 import frc.robot.Constants.Constants.VisionConstants;
+import frc.robot.Constants.IntakeArmConstants;
 import frc.robot.SWERVE.CommandSwerveDrivetrain;
 import frc.robot.SWERVE.Telemetry;
 import frc.robot.SWERVE.TunerConstants;
 import frc.robot.commands.Intake.IntakeArmCommand;
+import frc.robot.commands.Intake.IntakeArmEnableDropCommand;
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
 import frc.robot.subsystems.Intake.IntakeArmSubsystem;
@@ -41,7 +43,6 @@ import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
 //import frc.robot.subsystems.BEATz;
-
 
 import com.pathplanner.lib.auto.NamedCommands;
 import frc.robot.commands.NamedCommands.*;
@@ -62,7 +63,6 @@ public class RobotContainer {
  // @SuppressWarnings("unused")
  // private final BEATz m_BEATz = new BEATz();
 
-
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final CommandXboxController joystick = new CommandXboxController(0);
 
@@ -77,8 +77,6 @@ public class RobotContainer {
   // Subsystems
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
- 
-
 
   @SuppressWarnings("unused")
   private final IntakeArmCommand m_intakeArmCommand = new IntakeArmCommand(m_intakeArmSubsystem, 90.0);
@@ -91,6 +89,7 @@ public class RobotContainer {
   private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem();
   private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
   private final ShooterFeederSubsytem m_shooterFeederSubsytem = new ShooterFeederSubsytem();
+
   // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
 
@@ -108,40 +107,40 @@ public class RobotContainer {
   private final PIDController m_aimPid =
       new PIDController(VisionConstants.kAimKp, VisionConstants.kAimKi, VisionConstants.kAimKd);
 
-      
   public RobotContainer() {
     configureNamedCommands();
 
     m_aimPid.enableContinuousInput(-Math.PI, Math.PI);
     configureBindings();
   }
-private void configureNamedCommands() {
 
-  NamedCommands.registerCommand(
-      "Shooter system",
-      new NamedShooter(m_shootersubsystem)
-  );
+  private void configureNamedCommands() {
 
-  NamedCommands.registerCommand(
-      "Shooter feed",
-      new NamedShooterFeed(m_shooterFeederSubsytem)
-  );
+    NamedCommands.registerCommand(
+        "Shooter system",
+        new NamedShooter(m_shootersubsystem)
+    );
 
-  NamedCommands.registerCommand(
-      "agitater",
-      new NamedAgitator(m_agitatorsubsystem)
-  );
+    NamedCommands.registerCommand(
+        "Shooter feed",
+        new NamedShooterFeed(m_shooterFeederSubsytem)
+    );
 
-  NamedCommands.registerCommand(
-      "intake arm",
-      new NamedIntakeArm(m_intakeArmSubsystem)
-  );
+    NamedCommands.registerCommand(
+        "agitater",
+        new NamedAgitator(m_agitatorsubsystem)
+    );
 
-  NamedCommands.registerCommand(
-      "intake",
-      new NamedIntake(m_intakeSubsystem)
-  );
-}
+    NamedCommands.registerCommand(
+        "intake arm",
+        new NamedIntakeArm(m_intakeArmSubsystem)
+    );
+
+    NamedCommands.registerCommand(
+        "intake",
+        new NamedIntake(m_intakeSubsystem)
+    );
+  }
 
   private static double clamp(double x, double lo, double hi) {
     return Math.max(lo, Math.min(hi, x));
@@ -186,9 +185,9 @@ private void configureNamedCommands() {
             () -> m_shootersubsystem.stop(),
             m_shootersubsystem));
 
-    // Shooter feeder RPS        
+    // Shooter feeder RPS
     SmartDashboard.putNumber("Shooter/FeedRPS", 35);
-   m_driverController.rightBumper().whileTrue(
+    m_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_shooterFeederSubsytem.setRPS(SmartDashboard.getNumber("Shooter/FeedRPS", 0)),
             () -> m_shooterFeederSubsytem.stop(),
@@ -202,11 +201,39 @@ private void configureNamedCommands() {
             () -> m_agitatorsubsystem.stop(),
             m_agitatorsubsystem));
 
-    // Intake arm presets
-    c_operatorController.leftBumper()
-    .onTrue(new IntakeArmCommand(m_intakeArmSubsystem, -45.0))
-    .onFalse(Commands.runOnce(m_intakeArmSubsystem::setGoalZero, m_intakeArmSubsystem));
+    // =========================
+    // INTAKE ARM (NEW SYSTEM)
+    // - Down is -45°
+    // - Up is 0°
+    // - Driver LEFT trigger maps 0..1 -> down..up
+    // =========================
+    SmartDashboard.putNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
+    SmartDashboard.putNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
 
+    SmartDashboard.putNumber("IntakeArm/TeleopCruiseRps", IntakeArmConstants.kCruiseRps_Arm);
+    SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
+
+    SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
+    SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
+
+    // Default command = trigger position control
+    m_intakeArmSubsystem.setDefaultCommand(
+        Commands.run(
+            () -> {
+              double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
+              double upDeg   = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
+
+              double t = m_driverController.getLeftTriggerAxis(); // 0..1
+
+              if (t < 0.05) t = 0.0;
+              if (t > 1.0) t = 1.0;
+
+              double targetDeg = downDeg + (upDeg - downDeg) * t;
+              m_intakeArmSubsystem.setGoalDegrees(targetDeg);
+            },
+            m_intakeArmSubsystem
+        )
+    );
 
     // =========================
     // AIM ASSIST
@@ -239,6 +266,11 @@ private void configureNamedCommands() {
           return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
         })
     );
+  }
+
+  // Schedule this on enable in Robot.java
+  public Command getEnableArmDropCommand() {
+    return new IntakeArmEnableDropCommand(m_intakeArmSubsystem);
   }
 
   /** Call this every robotPeriodic() to fuse vision with strong outlier rejection. */
@@ -282,72 +314,70 @@ private void configureNamedCommands() {
     m_lastVisionTimestamp = ts;
   }
 
-
   public void publishMatchHubStatus() {
-  // Default
-  String status = "UNKNOWN";
+    // Default
+    String status = "UNKNOWN";
 
-  // If not enabled, or no alliance yet, keep it simple
-  var allianceOpt = DriverStation.getAlliance();
-  if (allianceOpt.isEmpty()) {
+    // If not enabled, or no alliance yet, keep it simple
+    var allianceOpt = DriverStation.getAlliance();
+    if (allianceOpt.isEmpty()) {
+      SmartDashboard.putString("HUB Status", status);
+      return;
+    }
+
+    // During AUTO, Transition, and Endgame: BOTH hubs are active :contentReference[oaicite:1]{index=1}
+    if (DriverStation.isAutonomous()) {
+      SmartDashboard.putString("HUB Status", "ACTIVE");
+      return;
+    }
+
+    // Teleop match time remaining (seconds)
+    double t = DriverStation.getMatchTime();
+    if (!(t > 0.0)) { // handles -1 or 0 when not in a real match clock
+      SmartDashboard.putString("HUB Status", status);
+      return;
+    }
+
+    // Endgame: 0:30–0:00 => both active :contentReference[oaicite:2]{index=2}
+    if (t <= 30.0) {
+      SmartDashboard.putString("HUB Status", "ACTIVE");
+      return;
+    }
+
+    // Transition Shift: 2:20–2:10 => both active :contentReference[oaicite:3]{index=3}
+    if (t > 130.0) {
+      SmartDashboard.putString("HUB Status", "ACTIVE");
+      return;
+    }
+
+    // Game-specific data: 'R' or 'B' = alliance whose hub is inactive first (SHIFT 1) :contentReference[oaicite:4]{index=4}
+    String gameData = DriverStation.getGameSpecificMessage();
+    if (gameData == null || gameData.length() == 0) {
+      SmartDashboard.putString("HUB Status", status);
+      return;
+    }
+
+    char firstInactive = gameData.charAt(0); // 'R' or 'B'
+    boolean weAreRed = (allianceOpt.get() == DriverStation.Alliance.Red);
+
+    // Determine which SHIFT we are in by teleop time remaining :contentReference[oaicite:5]{index=5}
+    // SHIFT 1: 2:10–1:45 => 130–105
+    // SHIFT 2: 1:45–1:20 => 105–80
+    // SHIFT 3: 1:20–0:55 => 80–55
+    // SHIFT 4: 0:55–0:30 => 55–30
+    int shift;
+    if (t > 105.0) shift = 1;
+    else if (t > 80.0) shift = 2;
+    else if (t > 55.0) shift = 3;
+    else shift = 4;
+
+    // If firstInactive == our alliance color => we are INACTIVE on odd shifts (1,3) and ACTIVE on even shifts (2,4). :contentReference[oaicite:6]{index=6}
+    boolean weFirstInactive = (firstInactive == (weAreRed ? 'R' : 'B'));
+    boolean weInactiveThisShift = weFirstInactive ? (shift == 1 || shift == 3) : (shift == 2 || shift == 4);
+
+    status = weInactiveThisShift ? "INACTIVE" : "ACTIVE";
     SmartDashboard.putString("HUB Status", status);
-    return;
   }
-
-  // During AUTO, Transition, and Endgame: BOTH hubs are active :contentReference[oaicite:1]{index=1}
-  if (DriverStation.isAutonomous()) {
-    SmartDashboard.putString("HUB Status", "ACTIVE");
-    return;
-  }
-
-  // Teleop match time remaining (seconds)
-  double t = DriverStation.getMatchTime();
-  if (!(t > 0.0)) { // handles -1 or 0 when not in a real match clock
-    SmartDashboard.putString("HUB Status", status);
-    return;
-  }
-
-  // Endgame: 0:30–0:00 => both active :contentReference[oaicite:2]{index=2}
-  if (t <= 30.0) {
-    SmartDashboard.putString("HUB Status", "ACTIVE");
-    return;
-  }
-
-  // Transition Shift: 2:20–2:10 => both active :contentReference[oaicite:3]{index=3}
-  if (t > 130.0) {
-    SmartDashboard.putString("HUB Status", "ACTIVE");
-    return;
-  }
-
-  // Game-specific data: 'R' or 'B' = alliance whose hub is inactive first (SHIFT 1) :contentReference[oaicite:4]{index=4}
-  String gameData = DriverStation.getGameSpecificMessage();
-  if (gameData == null || gameData.length() == 0) {
-    SmartDashboard.putString("HUB Status", status);
-    return;
-  }
-
-  char firstInactive = gameData.charAt(0); // 'R' or 'B'
-  boolean weAreRed = (allianceOpt.get() == DriverStation.Alliance.Red);
-
-  // Determine which SHIFT we are in by teleop time remaining :contentReference[oaicite:5]{index=5}
-  // SHIFT 1: 2:10–1:45 => 130–105
-  // SHIFT 2: 1:45–1:20 => 105–80
-  // SHIFT 3: 1:20–0:55 => 80–55
-  // SHIFT 4: 0:55–0:30 => 55–30
-  int shift;
-  if (t > 105.0) shift = 1;
-  else if (t > 80.0) shift = 2;
-  else if (t > 55.0) shift = 3;
-  else shift = 4;
-
-  // If firstInactive == our alliance color => we are INACTIVE on odd shifts (1,3) and ACTIVE on even shifts (2,4). :contentReference[oaicite:6]{index=6}
-  boolean weFirstInactive = (firstInactive == (weAreRed ? 'R' : 'B'));
-  boolean weInactiveThisShift = weFirstInactive ? (shift == 1 || shift == 3) : (shift == 2 || shift == 4);
-
-  status = weInactiveThisShift ? "INACTIVE" : "ACTIVE";
-  SmartDashboard.putString("HUB Status", status);
-}
-
 
   public Command getAutonomousCommand() {
     final var idle = new SwerveRequest.Idle();

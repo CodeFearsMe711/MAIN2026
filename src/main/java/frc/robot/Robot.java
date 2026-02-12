@@ -35,6 +35,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    // Slow drop arm on enable
+    CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
+
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
@@ -46,6 +49,9 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().cancel(m_autonomousCommand);
     }
+
+    // Slow drop arm on enable
+    CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
   }
 
   @Override

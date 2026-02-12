@@ -63,6 +63,17 @@ public class IntakeArmSubsystem extends SubsystemBase {
     return Math.abs(getDegrees() - goalDeg) <= IntakeArmConstants.kToleranceDeg;
   }
 
+  /** Update Motion Magic constraints using ARM units (RPS and RPS^2). */
+  public void setMotionMagicConstraintsArm(double cruiseRpsArm, double accelRps2Arm) {
+    TalonFXConfiguration cfg = new TalonFXConfiguration();
+    motor.getConfigurator().refresh(cfg);
+
+    cfg.MotionMagic.MotionMagicCruiseVelocity = armRpsToMotorRps(cruiseRpsArm);
+    cfg.MotionMagic.MotionMagicAcceleration   = armRps2ToMotorRps2(accelRps2Arm);
+
+    motor.getConfigurator().apply(cfg);
+  }
+
   private double getMotorRotations() {
     return motor.getPosition().getValueAsDouble();
   }
