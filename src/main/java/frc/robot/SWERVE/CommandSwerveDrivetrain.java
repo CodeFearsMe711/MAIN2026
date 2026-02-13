@@ -5,6 +5,9 @@ import static edu.wpi.first.units.Units.*;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.function.Supplier;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Pose2d;
+
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
@@ -14,7 +17,6 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
@@ -135,6 +137,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         )
     );
 
+    private void publishOdometryToDashboard() {
+    Pose2d pose = this.getState().Pose; // CTRE state pose
+
+    SmartDashboard.putNumber("Odo/X_m", pose.getX());
+    SmartDashboard.putNumber("Odo/Y_m", pose.getY());
+    SmartDashboard.putNumber("Odo/Heading_deg", pose.getRotation().getDegrees());
+
+    // Optional extra: shows overall speed your odometry thinks you're doing
+    SmartDashboard.putNumber("Odo/Speed_mps", this.getState().Speeds.vxMetersPerSecond);
+    SmartDashboard.putNumber("Odo/Omega_radps", this.getState().Speeds.omegaRadiansPerSecond);
+}
+
     /*
      * SysId routine for characterizing rotation.
      * This is used to find PID gains for the FieldCentricFacingAngle HeadingController.
@@ -221,6 +235,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         : kBlueAlliancePerspectiveRotation
                 );
                 m_hasAppliedOperatorPerspective = true;
+                publishOdometryToDashboard();
             });
         }
     }

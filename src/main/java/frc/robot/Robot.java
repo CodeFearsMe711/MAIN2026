@@ -3,6 +3,10 @@ package frc.robot;
 
 import com.ctre.phoenix6.HootAutoReplay;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Pose2d;
+import frc.robot.SWERVE.CommandSwerveDrivetrain;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -31,7 +35,23 @@ public class Robot extends TimedRobot {
     m_robotContainer.publishMatchHubStatus();
 
     CommandScheduler.getInstance().run();
-  }
+
+    CommandScheduler.getInstance().run();
+
+    if (m_robotContainer != null && m_robotContainer.getDrivetrain() != null) {
+        Pose2d pose = m_robotContainer.getDrivetrain().getState().Pose;
+
+        SmartDashboard.putNumber("Odo/X_m", pose.getX());
+        SmartDashboard.putNumber("Odo/Y_m", pose.getY());
+        SmartDashboard.putNumber("Odo/Heading_deg", pose.getRotation().getDegrees());
+
+        SmartDashboard.putNumber("Odo/Vx_mps", m_robotContainer.getDrivetrain().getState().Speeds.vxMetersPerSecond);
+        SmartDashboard.putNumber("Odo/Vy_mps", m_robotContainer.getDrivetrain().getState().Speeds.vyMetersPerSecond);
+        SmartDashboard.putNumber("Odo/Omega_radps", m_robotContainer.getDrivetrain().getState().Speeds.omegaRadiansPerSecond);
+    }
+}
+
+  
 
   @Override
   public void autonomousInit() {
