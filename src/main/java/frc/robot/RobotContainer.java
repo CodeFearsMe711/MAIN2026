@@ -149,36 +149,22 @@ public CommandSwerveDrivetrain getDrivetrain() {
 
     if (m_robotConfig == null) return;
 
-    AutoBuilder.configure(
-        () -> drivetrain.getState().Pose,
-        (Pose2d pose) -> {
-          // NOTE:
-          // Your CTRE drivetrain file doesn't expose a Pose2d reset method.
-          // This keeps PathPlanner compiling and at least seeds the heading.
-          // If you add a real resetPose(Pose2d) method later, replace this.
-          drivetrain.seedFieldCentric(pose.getRotation());
-        },
-        () -> drivetrain.getState().Speeds, // ChassisSpeeds (robot-relative) from CTRE state
-        (ChassisSpeeds speeds) -> {
-          // Robot-relative drive for PathPlanner
-          final var robotCentric =
-              new SwerveRequest.RobotCentric()
-                  .withDriveRequestType(DriveRequestType.Velocity)
-                  .withVelocityX(speeds.vxMetersPerSecond)
-                  .withVelocityY(speeds.vyMetersPerSecond)
-                  .withRotationalRate(speeds.omegaRadiansPerSecond);
+AutoBuilder.configure(
+    () -> drivetrain.getState().Pose,
+    drivetrain::resetPose,                 // FULL pose reset now
+    drivetrain::getRobotRelativeSpeeds,
+    drivetrain::driveRobotRelative,
+    new PPHolonomicDriveController(
+        new PIDConstants(5.0, 0.0, 0.0),
+        new PIDConstants(5.0, 0.0, 0.0)
+    ),
+    m_robotConfig,
+    () -> DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
+    drivetrain
+);
 
-          drivetrain.setControl(robotCentric);
-        },
-        new PPHolonomicDriveController(
-            new PIDConstants(5.0, 0.0, 0.0), // translation
-            new PIDConstants(5.0, 0.0, 0.0)  // rotation
-        ),
-        m_robotConfig,
-        () -> DriverStation.getAlliance().isPresent()
-            && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
-        drivetrain
-    );
+
   }
 
   private void configureNamedCommands() {

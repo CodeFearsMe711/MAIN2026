@@ -93,8 +93,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * Used by AutoBuilder: reset the robot pose to a known pose at the start of autos.
      * If your Phoenix version uses a different method name, change this ONE line.
      */
-   public void resetPose(Pose2d pose) {
-    this.seedFieldCentric(pose.getRotation());
+  @Override
+public void resetPose(Pose2d pose) {
+    super.resetPose(pose); // resets X, Y, and heading
 }
 
 
