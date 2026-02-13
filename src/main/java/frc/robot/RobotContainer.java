@@ -3,16 +3,24 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import org.photonvision.EstimatedRobotPose;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import org.photonvision.EstimatedRobotPose;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -28,11 +36,15 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.Constants.OperatorConstants;
 import frc.robot.Constants.Constants.VisionConstants;
 import frc.robot.Constants.IntakeArmConstants;
+
 import frc.robot.SWERVE.CommandSwerveDrivetrain;
 import frc.robot.SWERVE.Telemetry;
 import frc.robot.SWERVE.TunerConstants;
+
 import frc.robot.commands.Intake.IntakeArmCommand;
 import frc.robot.commands.Intake.IntakeArmEnableDropCommand;
+import frc.robot.commands.AimHubTagOverride;
+
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
 import frc.robot.subsystems.Intake.IntakeArmSubsystem;
@@ -40,28 +52,25 @@ import frc.robot.subsystems.Intake.IntakeSubsystem;
 import frc.robot.subsystems.LEDS.ConnectorXLeds;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
-import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
-//import frc.robot.subsystems.BEATz;
+import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 
-import com.pathplanner.lib.auto.NamedCommands;
 import frc.robot.commands.NamedCommands.*;
 
 public class RobotContainer {
   private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1)
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.FieldCentric drive =
+      new SwerveRequest.FieldCentric()
+          .withDeadband(MaxSpeed * 0.1)
+          .withRotationalDeadband(MaxAngularRate * 0.1)
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
   @SuppressWarnings("unused")
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   @SuppressWarnings("unused")
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
- // @SuppressWarnings("unused")
- // private final BEATz m_BEATz = new BEATz();
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final CommandXboxController joystick = new CommandXboxController(0);
@@ -86,6 +95,7 @@ public class RobotContainer {
   private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
   @SuppressWarnings("unused")
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
+
   private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem();
   private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
   private final ShooterFeederSubsytem m_shooterFeederSubsytem = new ShooterFeederSubsytem();
@@ -107,39 +117,72 @@ public class RobotContainer {
   private final PIDController m_aimPid =
       new PIDController(VisionConstants.kAimKp, VisionConstants.kAimKi, VisionConstants.kAimKd);
 
+  // PathPlanner
+  private RobotConfig m_robotConfig;
+  private final SendableChooser<Command> m_autoChooser;
+
   public RobotContainer() {
     configureNamedCommands();
 
     m_aimPid.enableContinuousInput(-Math.PI, Math.PI);
+
+    configurePathPlanner();
+
+    m_autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", m_autoChooser);
+
     configureBindings();
   }
 
+  private void configurePathPlanner() {
+    try {
+      m_robotConfig = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      DriverStation.reportError("RobotConfig.fromGUISettings() failed: " + e.getMessage(), e.getStackTrace());
+      m_robotConfig = null;
+    }
+
+    if (m_robotConfig == null) return;
+
+    AutoBuilder.configure(
+        () -> drivetrain.getState().Pose,
+        (Pose2d pose) -> {
+          // NOTE:
+          // Your CTRE drivetrain file doesn't expose a Pose2d reset method.
+          // This keeps PathPlanner compiling and at least seeds the heading.
+          // If you add a real resetPose(Pose2d) method later, replace this.
+          drivetrain.seedFieldCentric(pose.getRotation());
+        },
+        () -> drivetrain.getState().Speeds, // ChassisSpeeds (robot-relative) from CTRE state
+        (ChassisSpeeds speeds) -> {
+          // Robot-relative drive for PathPlanner
+          final var robotCentric =
+              new SwerveRequest.RobotCentric()
+                  .withDriveRequestType(DriveRequestType.Velocity)
+                  .withVelocityX(speeds.vxMetersPerSecond)
+                  .withVelocityY(speeds.vyMetersPerSecond)
+                  .withRotationalRate(speeds.omegaRadiansPerSecond);
+
+          drivetrain.setControl(robotCentric);
+        },
+        new PPHolonomicDriveController(
+            new PIDConstants(5.0, 0.0, 0.0), // translation
+            new PIDConstants(5.0, 0.0, 0.0)  // rotation
+        ),
+        m_robotConfig,
+        () -> DriverStation.getAlliance().isPresent()
+            && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
+        drivetrain
+    );
+  }
+
   private void configureNamedCommands() {
-
-    NamedCommands.registerCommand(
-        "Shooter system",
-        new NamedShooter(m_shootersubsystem)
-    );
-
-    NamedCommands.registerCommand(
-        "Shooter feed",
-        new NamedShooterFeed(m_shooterFeederSubsytem)
-    );
-
-    NamedCommands.registerCommand(
-        "agitater",
-        new NamedAgitator(m_agitatorsubsystem)
-    );
-
-    NamedCommands.registerCommand(
-        "intake arm",
-        new NamedIntakeArm(m_intakeArmSubsystem)
-    );
-
-    NamedCommands.registerCommand(
-        "intake",
-        new NamedIntake(m_intakeSubsystem)
-    );
+    NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
+    NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
+    NamedCommands.registerCommand("agitater", new NamedAgitator(m_agitatorsubsystem));
+    NamedCommands.registerCommand("intake arm", new NamedIntakeArm(m_intakeArmSubsystem));
+    NamedCommands.registerCommand("intake", new NamedIntake(m_intakeSubsystem));
+    NamedCommands.registerCommand("Aim Hub Tag Override", new AimHubTagOverride(drivetrain, m_photonVision, m_aimPid));
   }
 
   private static double clamp(double x, double lo, double hi) {
@@ -149,12 +192,10 @@ public class RobotContainer {
   private void configureBindings() {
     // Default drive
     drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(() ->
-            drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
-                .withVelocityY(-joystick.getLeftX() * MaxSpeed)
-                .withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
-
-    SmartDashboard.putData("Auto Chooser", new SendableChooser<Command>());
+        drivetrain.applyRequest(
+            () -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
+                      .withVelocityY(-joystick.getLeftX() * MaxSpeed)
+                      .withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
 
     final var idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled().whileTrue(
@@ -202,10 +243,7 @@ public class RobotContainer {
             m_agitatorsubsystem));
 
     // =========================
-    // INTAKE ARM (NEW SYSTEM)
-    // - Down is -45°
-    // - Up is 0°
-    // - Driver LEFT trigger maps 0..1 -> down..up
+    // INTAKE ARM (Trigger position)
     // =========================
     SmartDashboard.putNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
     SmartDashboard.putNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
@@ -216,15 +254,13 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
 
-    // Default command = trigger position control
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {
               double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
               double upDeg   = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
 
-              double t = m_driverController.getLeftTriggerAxis(); // 0..1
-
+              double t = m_driverController.getLeftTriggerAxis();
               if (t < 0.05) t = 0.0;
               if (t > 1.0) t = 1.0;
 
@@ -236,25 +272,21 @@ public class RobotContainer {
     );
 
     // =========================
-    // AIM ASSIST
+    // AIM ASSIST (teleop)
     // =========================
     m_driverController.leftBumper().whileTrue(
         drivetrain.applyRequest(() -> {
           double vx = -joystick.getLeftY() * MaxSpeed;
           double vy = -joystick.getLeftX() * MaxSpeed;
 
-          // fallback to driver rotation if no tag
           double omega = -joystick.getRightX() * MaxAngularRate;
 
           var yawOpt = m_photonVision.getYawToBestTagRad(VisionConstants.kAimTagIds);
           if (yawOpt.isPresent()) {
-            double yawErr = yawOpt.get(); // rad, + means tag is to the right
+            double yawErr = yawOpt.get();
 
             if (Math.abs(yawErr) >= VisionConstants.kAimMinErrorRad) {
-              // Want yawErr -> 0
               double cmd = m_aimPid.calculate(yawErr, 0.0);
-
-              // If it turns the wrong direction, remove the '-' below.
               omega = clamp(-cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
             } else {
               omega = 0.0;
@@ -315,63 +347,50 @@ public class RobotContainer {
   }
 
   public void publishMatchHubStatus() {
-    // Default
     String status = "UNKNOWN";
 
-    // If not enabled, or no alliance yet, keep it simple
     var allianceOpt = DriverStation.getAlliance();
     if (allianceOpt.isEmpty()) {
       SmartDashboard.putString("HUB Status", status);
       return;
     }
 
-    // During AUTO, Transition, and Endgame: BOTH hubs are active :contentReference[oaicite:1]{index=1}
     if (DriverStation.isAutonomous()) {
       SmartDashboard.putString("HUB Status", "ACTIVE");
       return;
     }
 
-    // Teleop match time remaining (seconds)
     double t = DriverStation.getMatchTime();
-    if (!(t > 0.0)) { // handles -1 or 0 when not in a real match clock
+    if (!(t > 0.0)) {
       SmartDashboard.putString("HUB Status", status);
       return;
     }
 
-    // Endgame: 0:30–0:00 => both active :contentReference[oaicite:2]{index=2}
     if (t <= 30.0) {
       SmartDashboard.putString("HUB Status", "ACTIVE");
       return;
     }
 
-    // Transition Shift: 2:20–2:10 => both active :contentReference[oaicite:3]{index=3}
     if (t > 130.0) {
       SmartDashboard.putString("HUB Status", "ACTIVE");
       return;
     }
 
-    // Game-specific data: 'R' or 'B' = alliance whose hub is inactive first (SHIFT 1) :contentReference[oaicite:4]{index=4}
     String gameData = DriverStation.getGameSpecificMessage();
     if (gameData == null || gameData.length() == 0) {
       SmartDashboard.putString("HUB Status", status);
       return;
     }
 
-    char firstInactive = gameData.charAt(0); // 'R' or 'B'
+    char firstInactive = gameData.charAt(0);
     boolean weAreRed = (allianceOpt.get() == DriverStation.Alliance.Red);
 
-    // Determine which SHIFT we are in by teleop time remaining :contentReference[oaicite:5]{index=5}
-    // SHIFT 1: 2:10–1:45 => 130–105
-    // SHIFT 2: 1:45–1:20 => 105–80
-    // SHIFT 3: 1:20–0:55 => 80–55
-    // SHIFT 4: 0:55–0:30 => 55–30
     int shift;
     if (t > 105.0) shift = 1;
     else if (t > 80.0) shift = 2;
     else if (t > 55.0) shift = 3;
     else shift = 4;
 
-    // If firstInactive == our alliance color => we are INACTIVE on odd shifts (1,3) and ACTIVE on even shifts (2,4). :contentReference[oaicite:6]{index=6}
     boolean weFirstInactive = (firstInactive == (weAreRed ? 'R' : 'B'));
     boolean weInactiveThisShift = weFirstInactive ? (shift == 1 || shift == 3) : (shift == 2 || shift == 4);
 
@@ -380,14 +399,8 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    final var idle = new SwerveRequest.Idle();
-    return Commands.sequence(
-        drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
-        drivetrain.applyRequest(() ->
-            drive.withVelocityX(0.5)
-                .withVelocityY(0)
-                .withRotationalRate(0))
-            .withTimeout(5.0),
-        drivetrain.applyRequest(() -> idle));
+    // PathPlanner auto selected from dashboard
+    return m_autoChooser.getSelected();
   }
+ 
 }
