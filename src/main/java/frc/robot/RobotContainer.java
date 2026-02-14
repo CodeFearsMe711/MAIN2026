@@ -226,7 +226,7 @@ AutoBuilder.configure(
             m_shooterFeederSubsytem));
 
     // Agitator RPS
-    SmartDashboard.putNumber("Agitator/TargetRPS", 35);
+    SmartDashboard.putNumber("Agitator/TargetRPS", 30);
     m_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_agitatorsubsystem.setRPS(SmartDashboard.getNumber("Agitator/TargetRPS", 0)),

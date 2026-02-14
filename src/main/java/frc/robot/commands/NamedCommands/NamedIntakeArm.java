@@ -9,7 +9,7 @@ public class NamedIntakeArm extends Command {
   private final IntakeArmCommand armCommand;
 
   public NamedIntakeArm(IntakeArmSubsystem arm) {
-    armCommand = new IntakeArmCommand(arm, 90.0); // degrees
+    armCommand = new IntakeArmCommand(arm, 0); // degrees
   }
 
   @Override

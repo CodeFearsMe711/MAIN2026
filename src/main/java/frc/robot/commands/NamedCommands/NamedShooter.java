@@ -9,7 +9,7 @@ public class NamedShooter extends Command {
   private final ShooterCommand shooterCommand;
 
   public NamedShooter(ShooterSubsystem shooter) {
-    shooterCommand = new ShooterCommand(shooter, 50.0); // RPS
+    shooterCommand = new ShooterCommand(shooter, 200.0); // RPS
   }
 
   @Override
