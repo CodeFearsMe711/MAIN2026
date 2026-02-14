@@ -25,12 +25,6 @@
                       }
                     },
                     {
-                      "type": "named",
-                      "data": {
-                        "name": "Aim Hub Tag Override"
-                      }
-                    },
-                    {
                       "type": "race",
                       "data": {
                         "commands": [
@@ -84,12 +78,6 @@
                       "type": "path",
                       "data": {
                         "pathName": "4.0"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Aim Hub Tag Override"
                       }
                     },
                     {

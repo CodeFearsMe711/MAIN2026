@@ -202,7 +202,7 @@ AutoBuilder.configure(
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // Intake RPS
-    SmartDashboard.putNumber("Intake/TargetRPS", 40);
+    SmartDashboard.putNumber("Intake/TargetRPS", 30);
     m_driverController.x().whileTrue(
         Commands.runEnd(
             () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
@@ -210,7 +210,7 @@ AutoBuilder.configure(
             m_intakeSubsystem));
 
     // Shooter RPS
-    SmartDashboard.putNumber("Shooter/TargetRPS", 160);
+    SmartDashboard.putNumber("Shooter/TargetRPS", 200);
     m_driverController.y().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
