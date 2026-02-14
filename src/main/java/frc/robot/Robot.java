@@ -5,12 +5,14 @@ import com.ctre.phoenix6.HootAutoReplay;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.SWERVE.CommandSwerveDrivetrain;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.LEDS.ConnectorXLeds;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -20,6 +22,22 @@ public class Robot extends TimedRobot {
   private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
       .withTimestampReplay()
       .withJoystickReplay();
+
+  private void seedHeadingForAlliance() {
+  if (m_robotContainer == null || m_robotContainer.getDrivetrain() == null) return;
+
+  var alliance = DriverStation.getAlliance();
+  boolean isRed = alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
+
+  Pose2d currentPose = m_robotContainer.getDrivetrain().getState().Pose;
+
+  m_robotContainer.getDrivetrain().resetPose(
+    new Pose2d(
+      currentPose.getTranslation(),
+      isRed ? Rotation2d.fromDegrees(180) : Rotation2d.fromDegrees(0)
+    )
+  );
+}
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -53,18 +71,22 @@ public class Robot extends TimedRobot {
   
 
   @Override
-  public void autonomousInit() {
-    // Slow drop arm on enable
-    CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
+public void autonomousInit() {
+  seedHeadingForAlliance(); 
 
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
-    }
+  // Slow drop arm on enable
+  CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
+
+  m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+  if (m_autonomousCommand != null) {
+    CommandScheduler.getInstance().schedule(m_autonomousCommand);
   }
+}
+
 
  @Override
 public void teleopInit() {
+  seedHeadingForAlliance(); 
 
   if (m_autonomousCommand != null) {
     CommandScheduler.getInstance().cancel(m_autonomousCommand);
@@ -73,6 +95,7 @@ public void teleopInit() {
   // Slow drop arm on enable
   CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
 }
+
 
 
   @Override
