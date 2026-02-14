@@ -36,7 +36,6 @@ public class Robot extends TimedRobot {
 
     CommandScheduler.getInstance().run();
 
-    CommandScheduler.getInstance().run();
 
     if (m_robotContainer != null && m_robotContainer.getDrivetrain() != null) {
         Pose2d pose = m_robotContainer.getDrivetrain().getState().Pose;
@@ -64,15 +63,17 @@ public class Robot extends TimedRobot {
     }
   }
 
-  @Override
-  public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().cancel(m_autonomousCommand);
-    }
+ @Override
+public void teleopInit() {
 
-    // Slow drop arm on enable
-    CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
+  if (m_autonomousCommand != null) {
+    CommandScheduler.getInstance().cancel(m_autonomousCommand);
   }
+
+  // Slow drop arm on enable
+  CommandScheduler.getInstance().schedule(m_robotContainer.getEnableArmDropCommand());
+}
+
 
   @Override
   public void robotInit() {

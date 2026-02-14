@@ -171,9 +171,11 @@ AutoBuilder.configure(
     NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
     NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
     NamedCommands.registerCommand("agitater", new NamedAgitator(m_agitatorsubsystem));
-    NamedCommands.registerCommand("intake arm", new NamedIntakeArm(m_intakeArmSubsystem));
     NamedCommands.registerCommand("intake", new NamedIntake(m_intakeSubsystem));
     NamedCommands.registerCommand("Aim Hub Tag Override", new AimHubTagOverride(drivetrain, m_photonVision, m_aimPid));
+    NamedCommands.registerCommand("IntakeArmUp", new IntakeArmCommand(m_intakeArmSubsystem, SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB)));
+    NamedCommands.registerCommand("IntakeArmDown", new IntakeArmCommand(m_intakeArmSubsystem, SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
+
   }
 
   private static double clamp(double x, double lo, double hi) {
@@ -388,6 +390,7 @@ AutoBuilder.configure(
     status = weInactiveThisShift ? "INACTIVE" : "ACTIVE";
     SmartDashboard.putString("HUB Status", status);
   }
+
 
   public Command getAutonomousCommand() {
     // PathPlanner auto selected from dashboard
