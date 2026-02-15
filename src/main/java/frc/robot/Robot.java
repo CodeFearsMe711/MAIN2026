@@ -89,7 +89,7 @@ public void teleopInit() {
   seedHeadingForAlliance(); 
 
   if (m_autonomousCommand != null) {
-    CommandScheduler.getInstance().cancel(m_autonomousCommand);
+    CommandScheduler.getInstance().cancelAll();
   }
 
   // Slow drop arm on enable

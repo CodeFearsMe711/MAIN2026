@@ -8,6 +8,10 @@ import org.photonvision.EstimatedRobotPose;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.config.PIDConstants;
@@ -122,6 +126,8 @@ public class RobotContainer {
   private RobotConfig m_robotConfig;
   private final SendableChooser<Command> m_autoChooser;
 
+  
+
   public RobotContainer() {
     
     configureNamedCommands();
@@ -166,6 +172,10 @@ AutoBuilder.configure(
 
 
   }
+
+  UsbCamera camera = CameraServer.startAutomaticCapture(1);
+camera.setResolution(320, 240);
+camera.setFPS(15);
 
   private void configureNamedCommands() {
     NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
