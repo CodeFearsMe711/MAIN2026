@@ -2,18 +2,26 @@ package frc.robot.subsystems.Intake;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeArmConstants;
 
 public class IntakeArmSubsystem extends SubsystemBase {
   private final TalonFX motor = new TalonFX(IntakeArmConstants.kMotorId, IntakeArmConstants.kCanBus);
   private final MotionMagicVoltage mm = new MotionMagicVoltage(0.0);
+  // Small helper for manual velocity control when a command needs to override
+  private final VelocityVoltage velocityReq = new VelocityVoltage(0);
 
   private double goalMotorRot = 0.0;
   private boolean hasSoftZeroed = false;
+  // When true, periodic will command velocityReq instead of the position MotionMagic
+  private boolean manualControl = false;
+  // manual commanded arm RPS (arm units)
+  private double manualArmRps = 0.0;
 
   public IntakeArmSubsystem() {
     motor.setNeutralMode(NeutralModeValue.Brake);
@@ -42,8 +50,28 @@ public class IntakeArmSubsystem extends SubsystemBase {
       hasSoftZeroed = true;
     }
 
-    // Always hold the goal
-    motor.setControl(mm.withPosition(goalMotorRot));
+    // If a command has requested manual control, obey that (this will override
+    // the normal Motion Magic position-holding). Otherwise hold the goal.
+    if (manualControl) {
+      // Convert arm RPS to motor RPS for VelocityVoltage
+      motor.setControl(velocityReq.withVelocity(armRpsToMotorRps(manualArmRps)));
+    } else {
+      motor.setControl(mm.withPosition(goalMotorRot));
+    }
+  }
+
+  /** Enable manual velocity control of the arm in arm-RPS units. This will override
+   *  the normal Motion Magic position controller until {@link #disableManualControl}
+   *  is called. Pass positive values to move in the "up" direction.
+   */
+  public void enableManualArmRPS(double armRps) {
+    manualArmRps = armRps;
+    manualControl = true;
+  }
+
+  /** Disable manual control and return to Motion Magic position-holding. */
+  public void disableManualControl() {
+    manualControl = false;
   }
 
   public void setGoalDegrees(double armDeg) {
@@ -59,8 +87,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
   }
 
   public boolean atGoal() {
+    double DEG = getDegrees();
+    SmartDashboard.putNumber("Arm Degrees", DEG);
     double goalDeg = motorRotationsToDegrees(goalMotorRot);
     return Math.abs(getDegrees() - goalDeg) <= IntakeArmConstants.kToleranceDeg;
+    
   }
 
   /** Update Motion Magic constraints using ARM units (RPS and RPS^2). */

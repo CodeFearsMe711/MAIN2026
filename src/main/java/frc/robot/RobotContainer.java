@@ -73,7 +73,6 @@ public class RobotContainer {
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
-  private final CommandXboxController joystick = new CommandXboxController(0);
 
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
@@ -190,26 +189,36 @@ AutoBuilder.configure(
   private void configureBindings() {
     // Default drive
     drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(
-            () -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
-                      .withVelocityY(-joystick.getLeftX() * MaxSpeed)
-                      .withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
+    drivetrain.applyRequest(() -> {
+      double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
+      double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
+      double rx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getRightX(), 0.08);
+
+      return drive.withVelocityX(-ly * MaxSpeed)
+                  .withVelocityY(-lx * MaxSpeed)
+                  .withRotationalRate(-rx * MaxAngularRate);
+    })
+);
+
 
     final var idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled().whileTrue(
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-    joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+    m_driverController.back().and(m_driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+m_driverController.back().and(m_driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+m_driverController.start().and(m_driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+
+    m_driverController.back().and(m_driverController.leftBumper())
+    .onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // Intake RPS
-    SmartDashboard.putNumber("Intake/TargetRPS", 30);
+    SmartDashboard.putNumber("Intake/TargetRPS", 35);
     m_driverController.x().whileTrue(
         Commands.runEnd(
             () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
@@ -258,6 +267,9 @@ AutoBuilder.configure(
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
 
+  // Tunable slow-raise speed (arm RPS)
+  SmartDashboard.putNumber("IntakeArm/SlowRaiseRPS", 0.10);
+
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {
@@ -274,6 +286,18 @@ AutoBuilder.configure(
             m_intakeArmSubsystem
         )
     );
+
+  // C-driver binding: hold to slowly raise the intake arm using a simple runEnd
+  c_driverController.rightBumper().whileTrue(
+    Commands.runEnd(
+      () -> m_intakeArmSubsystem.enableManualArmRPS(SmartDashboard.getNumber("IntakeArm/SlowRaiseRPS", 0.10)),
+      () -> {
+        m_intakeArmSubsystem.disableManualControl();
+        m_intakeArmSubsystem.setGoalDegrees(m_intakeArmSubsystem.getDegrees());
+      },
+      m_intakeArmSubsystem
+    )
+  );
 
     // =========================
     // AIM ASSIST (teleop)
@@ -297,18 +321,29 @@ m_driverController.leftBumper().whileTrue(
             if (best.getFiducialId() == 10) {
                 // Photon yaw is DEGREES
                 double yawErrRad = Math.toRadians(best.getYaw());
+        double cmd = m_aimPid.calculate(yawErrRad, 0.0);
+        omega = clamp(
+          -cmd,
+          -VisionConstants.kAimMaxOmegaRadPerSec,
+           VisionConstants.kAimMaxOmegaRadPerSec
+        );
 
-                double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-                omega = clamp(
-                    -cmd,
-                    -VisionConstants.kAimMaxOmegaRadPerSec,
-                     VisionConstants.kAimMaxOmegaRadPerSec
-                );
+        // Telemetry for debugging
+        SmartDashboard.putBoolean("AimAssist/Active", true);
+        SmartDashboard.putNumber("AimAssist/TargetYawDeg", best.getYaw());
+        SmartDashboard.putNumber("AimAssist/YawErrRad", yawErrRad);
+        SmartDashboard.putNumber("AimAssist/PIDCmd", cmd);
+        SmartDashboard.putNumber("AimAssist/Omega", omega);
             } else {
                 m_aimPid.reset();
             }
         } else {
-            m_aimPid.reset();
+      m_aimPid.reset();
+      SmartDashboard.putBoolean("AimAssist/Active", false);
+      SmartDashboard.putNumber("AimAssist/TargetYawDeg", Double.NaN);
+      SmartDashboard.putNumber("AimAssist/YawErrRad", Double.NaN);
+      SmartDashboard.putNumber("AimAssist/PIDCmd", Double.NaN);
+      SmartDashboard.putNumber("AimAssist/Omega", Double.NaN);
         }
 
         return drive.withVelocityX(vx)
