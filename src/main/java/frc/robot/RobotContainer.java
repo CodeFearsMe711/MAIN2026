@@ -103,8 +103,9 @@ public class RobotContainer {
   // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
 
-  private final org.photonvision.PhotonCamera m_aimCam =
-    new org.photonvision.PhotonCamera("Photon_Vision");
+private final org.photonvision.PhotonCamera m_aimCam =
+    new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
+
 
 private final edu.wpi.first.math.controller.PIDController m_aimPid =
     new edu.wpi.first.math.controller.PIDController(4.0, 0.0, 0.2);
@@ -323,7 +324,7 @@ m_driverController.leftBumper().whileTrue(
                 double yawErrRad = Math.toRadians(best.getYaw());
         double cmd = m_aimPid.calculate(yawErrRad, 0.0);
         omega = clamp(
-          -cmd,
+          cmd,
           -VisionConstants.kAimMaxOmegaRadPerSec,
            VisionConstants.kAimMaxOmegaRadPerSec
         );
