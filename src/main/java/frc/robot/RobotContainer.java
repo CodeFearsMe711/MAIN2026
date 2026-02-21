@@ -106,6 +106,11 @@ public class RobotContainer {
 
   private final edu.wpi.first.math.controller.PIDController m_aimPid =
       new edu.wpi.first.math.controller.PIDController(4.0, 0.0, 0.2);
+  private final edu.wpi.first.math.controller.PIDController m_rangePid =
+    new edu.wpi.first.math.controller.PIDController(
+        VisionConstants.kAimRangeKp,
+        VisionConstants.kAimRangeKi,
+        VisionConstants.kAimRangeKd);
 
   // Vision fusion gating state
   private double m_lastVisionTimestamp = -1.0;
@@ -308,60 +313,90 @@ public class RobotContainer {
     );
     
 
-    // =========================
-    // AIM ASSIST (teleop)
-    // =========================
-    m_driverController.leftBumper().whileTrue(
-        drivetrain.applyRequest(() -> {
-          double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
-          double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
+// =========================
+// AIM ASSIST (teleop)
+// =========================
+m_driverController.leftBumper().whileTrue(
+    drivetrain.applyRequest(() -> {
+      double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
+      double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
 
-          double vx = -ly * MaxSpeed;
-          double vy = -lx * MaxSpeed;
+      double vx = -ly * MaxSpeed;
+      double vy = -lx * MaxSpeed;
 
-          double omega = 0.0;
+      double omega = 0.0;
+      double rangeVRobot = 0.0; // + = drive forward (robot frame)
 
-          var result = m_aimCam.getLatestResult();
-          if (result.hasTargets()) {
+      var result = m_aimCam.getLatestResult();
+      if (result.hasTargets()) {
 
-            org.photonvision.targeting.PhotonTrackedTarget bestAllowed = null;
-            double bestAbsYaw = 1e9;
+        org.photonvision.targeting.PhotonTrackedTarget bestAllowed = null;
+        double bestAbsYaw = 1e9;
 
-            for (var t2 : result.getTargets()) {
-              int id = t2.getFiducialId();
+        for (var t2 : result.getTargets()) {
+          int id = t2.getFiducialId();
 
-              boolean allowed = false;
-              for (int a : VisionConstants.kAimTagIds) {
-                if (id == a) { allowed = true; break; }
-              }
-              if (!allowed) continue;
+          boolean allowed = false;
+          for (int a : VisionConstants.kAimTagIds) {
+            if (id == a) { allowed = true; break; }
+          }
+          if (!allowed) continue;
 
-              double absYaw = Math.abs(t2.getYaw());
-              if (absYaw < bestAbsYaw) {
-                bestAbsYaw = absYaw;
-                bestAllowed = t2;
-              }
-            }
+          double absYaw = Math.abs(t2.getYaw());
+          if (absYaw < bestAbsYaw) {
+            bestAbsYaw = absYaw;
+            bestAllowed = t2;
+          }
+        }
 
-            if (bestAllowed != null) {
-              double correctedYawDeg = bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg;
-              double yawErrRad = Math.toRadians(correctedYawDeg);
+        if (bestAllowed != null) {
+          // ----- yaw aim -----
+          double correctedYawDeg = bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg;
+          double yawErrRad = Math.toRadians(correctedYawDeg);
 
-              double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-              omega = clamp(cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
-            } else {
-              m_aimPid.reset();
-            }
+          double cmd = m_aimPid.calculate(yawErrRad, 0.0);
+          omega = clamp(cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
 
+          // ----- range hold (camera-to-tag distance) -----
+          double distMeters = bestAllowed.getBestCameraToTarget().getTranslation().getNorm();
+          double distErr = distMeters - VisionConstants.kAimTargetDistanceMeters;
+
+          if (Math.abs(distErr) < VisionConstants.kAimRangeDeadbandMeters) {
+            rangeVRobot = 0.0;
+            m_rangePid.reset();
           } else {
-            m_aimPid.reset();
+            double rangeCmd = m_rangePid.calculate(distMeters, VisionConstants.kAimTargetDistanceMeters);
+            // Invert so: too far => +forward, too close => -back
+            rangeVRobot = -rangeCmd;
+
+            rangeVRobot = clamp(
+                rangeVRobot,
+                -VisionConstants.kAimMaxRangeSpeedMps,
+                VisionConstants.kAimMaxRangeSpeedMps
+            );
           }
 
-          return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
-        })
-    );
-  }
+        } else {
+          m_aimPid.reset();
+          m_rangePid.reset();
+        }
 
+      } else {
+        m_aimPid.reset();
+        m_rangePid.reset();
+      }
+
+      // Convert robot-forward range correction into field-centric vx/vy
+      if (Math.abs(rangeVRobot) > 1e-6) {
+        var heading = drivetrain.getState().Pose.getRotation();
+        vx += rangeVRobot * heading.getCos();
+        vy += rangeVRobot * heading.getSin();
+      }
+
+      return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+    })
+);
+  }
 
   public void updateVisionFusion() {
     Pose2d currentPose = drivetrain.getState().Pose;

@@ -68,5 +68,15 @@ public final class Constants {
     public static final double kAimMinErrorRad = Units.degreesToRadians(1.5);
     // Aiming-only yaw trim (deg). + means pretend target is more to the right.
     public static final double kAimYawOffsetDeg = 10.0;
+    public static final class AimAssistConstants {
+    public static final double TARGET_DISTANCE_METERS = 2.0;
+
+    public static final double DISTANCE_kP = 1.2;
+    public static final double DISTANCE_kI = 0.0;
+    public static final double DISTANCE_kD = 0.0;
+
+    public static final double ROTATION_kP = 0.02;  // keep yours if different
+    public static final double MAX_FORWARD_SPEED = 2.0;  // m/s clamp
+}
   }
 }
