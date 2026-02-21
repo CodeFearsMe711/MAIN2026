@@ -54,10 +54,10 @@ public final class Constants {
     // =========================
 
     // Put the "right" tag IDs you want to aim at here
-    public static final int[] kAimTagIds = { 10, 26}; // TODO: replace with your actual tag IDs
+    public static final int[] kAimTagIds = { 10, 26,}; // TODO: replace with your actual tag IDs
 
     // PID gains for turning to face the tag using yaw error
-    public static final double kAimKp = 4.0;
+    public static final double kAimKp = 3;
     public static final double kAimKi = 0.0;
     public static final double kAimKd = 0.25;
 

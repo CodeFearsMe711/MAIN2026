@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.897897435897436,
-        "y": 5.872256410256409
+        "x": 4.497704545454545,
+        "y": 0.46884090909090903
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.235115384615384,
-        "y": 7.523461538461539
+        "x": 8.929636363636362,
+        "y": 0.19055681818181824
       },
       "isLocked": false,
-      "linkedName": "5.2END"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.886141025638045,
-        "y": 7.453692307684463
+        "x": 6.126181818181818,
+        "y": 7.415636363636363
       },
       "prevControl": {
-        "x": 3.246615384626514,
-        "y": 7.546717948710897
+        "x": 8.744113636363636,
+        "y": 6.756
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "5.3END"
+      "linkedName": "Bruh"
     }
   ],
   "rotationTargets": [],
@@ -45,10 +45,10 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Middle Auto 1",
+  "folder": "Miscellaneous",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -74.29136217098417
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
