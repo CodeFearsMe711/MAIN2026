@@ -21,6 +21,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     motor.getConfigurator().apply(cfg);
   }
+  
 
   // Command motor speed in rotations per second
   public void setRPS(double rps) {
@@ -30,4 +31,5 @@ public class IntakeSubsystem extends SubsystemBase {
   public void stop() {
     setRPS(0);
   }
+  
 }

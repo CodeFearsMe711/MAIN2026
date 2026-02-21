@@ -1,3 +1,4 @@
+// src/main/java/frc/robot/subsystems/Intake/IntakeArmSubsystem.java
 package frc.robot.subsystems.Intake;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -8,19 +9,18 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Constants.IntakeArmConstants;
 
 public class IntakeArmSubsystem extends SubsystemBase {
   private final TalonFX motor = new TalonFX(IntakeArmConstants.kMotorId, IntakeArmConstants.kCanBus);
   private final MotionMagicVoltage mm = new MotionMagicVoltage(0.0);
-  // Small helper for manual velocity control when a command needs to override
   private final VelocityVoltage velocityReq = new VelocityVoltage(0);
 
   private double goalMotorRot = 0.0;
   private boolean hasSoftZeroed = false;
-  // When true, periodic will command velocityReq instead of the position MotionMagic
+
   private boolean manualControl = false;
-  // manual commanded arm RPS (arm units)
   private double manualArmRps = 0.0;
 
   public IntakeArmSubsystem() {
@@ -36,51 +36,52 @@ public class IntakeArmSubsystem extends SubsystemBase {
     cfg.MotionMagic.MotionMagicAcceleration   = armRps2ToMotorRps2(IntakeArmConstants.kAccelRps2_Arm);
 
     motor.getConfigurator().apply(cfg);
-
-    // Do NOT set goal here based on sensor value.
-    // We will "soft zero" once on startup in periodic.
-
-    
   }
 
   @Override
   public void periodic() {
-    // Soft-zero once after startup (makes "wherever we boot" = 0)
-   if (!hasSoftZeroed) {
-  motor.setPosition(0);
-  // DO NOT touch goalMotorRot here — commands may have already set it
-  hasSoftZeroed = true;
-}
-    // If a command has requested manual control, obey that (this will override
-    // the normal Motion Magic position-holding). Otherwise hold the goal.
+    // Soft-zero once after startup (wherever we boot = 0)
+    if (!hasSoftZeroed) {
+      motor.setPosition(0);
+      hasSoftZeroed = true;
+    }
+
+    // Always publish angle (so it never "disappears" on Shuffleboard)
+    SmartDashboard.putNumber("Arm Degrees", getDegrees());
+    SmartDashboard.putBoolean("IntakeArm/ManualControl", manualControl);
+    SmartDashboard.putBoolean("IntakeArm/SoftZeroed", hasSoftZeroed);
+
     if (manualControl) {
-      // Convert arm RPS to motor RPS for VelocityVoltage
       motor.setControl(velocityReq.withVelocity(armRpsToMotorRps(manualArmRps)));
     } else {
       motor.setControl(mm.withPosition(goalMotorRot));
     }
   }
 
-  /** Enable manual velocity control of the arm in arm-RPS units. This will override
-   *  the normal Motion Magic position controller until {@link #disableManualControl}
-   *  is called. Pass positive values to move in the "up" direction.
-   */
   public void enableManualArmRPS(double armRps) {
     manualArmRps = armRps;
     manualControl = true;
   }
 
-  /** Disable manual control and return to Motion Magic position-holding. */
   public void disableManualControl() {
     manualControl = false;
   }
 
+  // ✅ Key reliability fix: any position goal forces Motion Magic mode
   public void setGoalDegrees(double armDeg) {
+    manualControl = false;
     goalMotorRot = degreesToMotorRotations(armDeg);
   }
 
   public void setGoalZero() {
+    manualControl = false;
     goalMotorRot = 0.0;
+  }
+
+  // ✅ Used by Robot.disabledInit() so re-enable never feels "dead"
+  public void holdCurrentPosition() {
+    manualControl = false;
+    goalMotorRot = getMotorRotations();
   }
 
   public double getDegrees() {
@@ -88,14 +89,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
   }
 
   public boolean atGoal() {
-    double DEG = getDegrees();
-    SmartDashboard.putNumber("Arm Degrees", DEG);
     double goalDeg = motorRotationsToDegrees(goalMotorRot);
     return Math.abs(getDegrees() - goalDeg) <= IntakeArmConstants.kToleranceDeg;
-    
   }
 
-  /** Update Motion Magic constraints using ARM units (RPS and RPS^2). */
   public void setMotionMagicConstraintsArm(double cruiseRpsArm, double accelRps2Arm) {
     TalonFXConfiguration cfg = new TalonFXConfiguration();
     motor.getConfigurator().refresh(cfg);
@@ -129,11 +126,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
   }
 
   public boolean isSoftZeroed() {
-  return hasSoftZeroed;
-}
+    return hasSoftZeroed;
+  }
 
-public void softZeroNow() {
-  motor.setPosition(0);
-  hasSoftZeroed = true;
-}
+  public void softZeroNow() {
+    motor.setPosition(0);
+    hasSoftZeroed = true;
+  }
 }

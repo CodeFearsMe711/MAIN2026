@@ -7,7 +7,7 @@ public final class IntakeArmConstants {
   public static final String kCanBus = "rio"; // "" also works for default
 
   // motorRotations = armRotations × kMotorRotationsPerArmRotation
-  public static final double kMotorRotationsPerArmRotation = 27.0;
+  public static final double kMotorRotationsPerArmRotation = 36.0;
 
   // Editable setpoints (ARM/OUTPUT degrees)
   public static final double kPosDegA = -45.0; // DOWN (all the way down)

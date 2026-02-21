@@ -16,9 +16,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -99,17 +97,14 @@ public class RobotContainer {
   private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
   private final ShooterFeederSubsytem m_shooterFeederSubsytem = new ShooterFeederSubsytem();
 
-
   // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
 
-private final org.photonvision.PhotonCamera m_aimCam =
-    new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
+  private final org.photonvision.PhotonCamera m_aimCam =
+      new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
 
-
-private final edu.wpi.first.math.controller.PIDController m_aimPid =
-    new edu.wpi.first.math.controller.PIDController(4.0, 0.0, 0.2);
-
+  private final edu.wpi.first.math.controller.PIDController m_aimPid =
+      new edu.wpi.first.math.controller.PIDController(4.0, 0.0, 0.2);
 
   // Vision fusion gating state
   private double m_lastVisionTimestamp = -1.0;
@@ -121,14 +116,11 @@ private final edu.wpi.first.math.controller.PIDController m_aimPid =
   private static final double kPosTolPerSecMeters = 3.0;
   private static final double kRotTolPerSecRad = Units.degreesToRadians(360.0);
 
-  // Hold-to-aim PID (rotation only)
-
   // PathPlanner
   private RobotConfig m_robotConfig;
   private final SendableChooser<Command> m_autoChooser;
 
   public RobotContainer() {
-    
     configureNamedCommands();
 
     m_aimPid.enableContinuousInput(-Math.PI, Math.PI);
@@ -140,9 +132,14 @@ private final edu.wpi.first.math.controller.PIDController m_aimPid =
 
     configureBindings();
   }
-public CommandSwerveDrivetrain getDrivetrain() {
+
+  public CommandSwerveDrivetrain getDrivetrain() {
     return drivetrain;
-}
+  }
+
+  public IntakeArmSubsystem getIntakeArmSubsystem() {
+    return m_intakeArmSubsystem;
+  }
 
   private void configurePathPlanner() {
     try {
@@ -154,22 +151,20 @@ public CommandSwerveDrivetrain getDrivetrain() {
 
     if (m_robotConfig == null) return;
 
-AutoBuilder.configure(
-    () -> drivetrain.getState().Pose,
-    drivetrain::resetPose,                 // FULL pose reset now
-    drivetrain::getRobotRelativeSpeeds,
-    drivetrain::driveRobotRelative,
-    new PPHolonomicDriveController(
-        new PIDConstants(5.0, 0.0, 0.0),
-        new PIDConstants(5.0, 0.0, 0.0)
-    ),
-    m_robotConfig,
-    () -> DriverStation.getAlliance().isPresent()
-        && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
-    drivetrain
-);
-
-
+    AutoBuilder.configure(
+        () -> drivetrain.getState().Pose,
+        drivetrain::resetPose,
+        drivetrain::getRobotRelativeSpeeds,
+        drivetrain::driveRobotRelative,
+        new PPHolonomicDriveController(
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(5.0, 0.0, 0.0)
+        ),
+        m_robotConfig,
+        () -> DriverStation.getAlliance().isPresent()
+            && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
+        drivetrain
+    );
   }
 
   private void configureNamedCommands() {
@@ -178,9 +173,10 @@ AutoBuilder.configure(
     NamedCommands.registerCommand("agitater", new NamedAgitator(m_agitatorsubsystem));
     NamedCommands.registerCommand("intake", new NamedIntake(m_intakeSubsystem));
     NamedCommands.registerCommand("Aim Hub Tag Override", new AimHubTagOverride(drivetrain, m_photonVision, m_aimPid));
-    NamedCommands.registerCommand("IntakeArmUp", new IntakeArmCommand(m_intakeArmSubsystem, SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB)));
-    NamedCommands.registerCommand("IntakeArmDown", new IntakeArmCommand(m_intakeArmSubsystem, SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
-
+    NamedCommands.registerCommand("IntakeArmUp", new IntakeArmCommand(m_intakeArmSubsystem,
+        SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB)));
+    NamedCommands.registerCommand("IntakeArmDown", new IntakeArmCommand(m_intakeArmSubsystem,
+        SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
   }
 
   private static double clamp(double x, double lo, double hi) {
@@ -190,31 +186,28 @@ AutoBuilder.configure(
   private void configureBindings() {
     // Default drive
     drivetrain.setDefaultCommand(
-    drivetrain.applyRequest(() -> {
-      double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
-      double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
-      double rx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getRightX(), 0.08);
+        drivetrain.applyRequest(() -> {
+          double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
+          double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
+          double rx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getRightX(), 0.08);
 
-      return drive.withVelocityX(-ly * MaxSpeed)
-                  .withVelocityY(-lx * MaxSpeed)
-                  .withRotationalRate(-rx * MaxAngularRate);
-    })
-);
-
+          return drive.withVelocityX(-ly * MaxSpeed)
+                      .withVelocityY(-lx * MaxSpeed)
+                      .withRotationalRate(-rx * MaxAngularRate);
+        })
+    );
 
     final var idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled().whileTrue(
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
     m_driverController.back().and(m_driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-m_driverController.back().and(m_driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-m_driverController.start().and(m_driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
+    m_driverController.back().and(m_driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    m_driverController.start().and(m_driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
     m_driverController.back().and(m_driverController.leftBumper())
-    .onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-
+        .onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
@@ -242,8 +235,6 @@ m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysI
             () -> m_shooterFeederSubsytem.stop(),
             m_shooterFeederSubsytem));
 
-   
-
     SmartDashboard.putNumber("Agitator/TargetRPS", 20);
     c_driverController.a().whileTrue(
         Commands.runEnd(
@@ -256,6 +247,7 @@ m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysI
             () -> m_agitatorsubsystem.setRPS(SmartDashboard.getNumber("Negative Agitator/TargetRPS", 0)),
             () -> m_agitatorsubsystem.stop(),
             m_agitatorsubsystem));
+
     // =========================
     // INTAKE ARM (Trigger position)
     // =========================
@@ -268,8 +260,7 @@ m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysI
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
 
-  // Tunable slow-raise speed (arm RPS)
-  SmartDashboard.putNumber("IntakeArm/SlowRaiseRPS", 0.10);
+    SmartDashboard.putNumber("IntakeArm/SlowRaiseRPS", 0.10);
 
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
@@ -288,91 +279,81 @@ m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysI
         )
     );
 
-  // C-driver binding: hold to slowly raise the intake arm using a simple runEnd
-  c_driverController.rightBumper().whileTrue(
-    Commands.runEnd(
-      () -> m_intakeArmSubsystem.enableManualArmRPS(SmartDashboard.getNumber("IntakeArm/SlowRaiseRPS", 0.10)),
-      () -> {
-        m_intakeArmSubsystem.disableManualControl();
-        m_intakeArmSubsystem.setGoalDegrees(m_intakeArmSubsystem.getDegrees());
-      },
-      m_intakeArmSubsystem
-    )
-  );
+    c_driverController.rightBumper().whileTrue(
+      Commands.runEnd(
+        () -> m_intakeArmSubsystem.enableManualArmRPS(SmartDashboard.getNumber("IntakeArm/SlowRaiseRPS", 0.10)),
+        () -> {
+          m_intakeArmSubsystem.disableManualControl();
+          m_intakeArmSubsystem.setGoalDegrees(m_intakeArmSubsystem.getDegrees());
+        },
+        m_intakeArmSubsystem
+      )
+    );
 
     // =========================
     // AIM ASSIST (teleop)
     // =========================
-   // --- Aim Assist (RAW PhotonVision, Tag ID 10) ---
-m_driverController.leftBumper().whileTrue(
-    drivetrain.applyRequest(() -> {
-        // Driver translation (deadband so it doesn't creep)
-        double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
-        double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
+    m_driverController.leftBumper().whileTrue(
+        drivetrain.applyRequest(() -> {
+          double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
+          double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
 
-        double vx = -ly * MaxSpeed;
-        double vy = -lx * MaxSpeed;
+          double vx = -ly * MaxSpeed;
+          double vy = -lx * MaxSpeed;
 
-        // Default rotation = 0 while aiming (you can change this later)
-        double omega = 0.0;
+          double omega = 0.0;
 
-       var result = m_aimCam.getLatestResult();
-if (result.hasTargets()) {
+          var result = m_aimCam.getLatestResult();
+          if (result.hasTargets()) {
 
-    org.photonvision.targeting.PhotonTrackedTarget bestAllowed = null;
-    double bestAbsYaw = 1e9;
+            org.photonvision.targeting.PhotonTrackedTarget bestAllowed = null;
+            double bestAbsYaw = 1e9;
 
-    for (var t : result.getTargets()) {
-        int id = t.getFiducialId();
+            for (var t2 : result.getTargets()) {
+              int id = t2.getFiducialId();
 
-        boolean allowed = false;
-        for (int a : VisionConstants.kAimTagIds) {
-            if (id == a) { allowed = true; break; }
-        }
-        if (!allowed) continue;
+              boolean allowed = false;
+              for (int a : VisionConstants.kAimTagIds) {
+                if (id == a) { allowed = true; break; }
+              }
+              if (!allowed) continue;
 
-        double absYaw = Math.abs(t.getYaw());
-        if (absYaw < bestAbsYaw) {
-            bestAbsYaw = absYaw;
-            bestAllowed = t;
-        }
-    }
+              double absYaw = Math.abs(t2.getYaw());
+              if (absYaw < bestAbsYaw) {
+                bestAbsYaw = absYaw;
+                bestAllowed = t2;
+              }
+            }
 
-    if (bestAllowed != null) {
-        double correctedYawDeg = bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg;
-        double yawErrRad = Math.toRadians(correctedYawDeg);
+            if (bestAllowed != null) {
+              double correctedYawDeg = bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg;
+              double yawErrRad = Math.toRadians(correctedYawDeg);
 
-        double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-        omega = clamp(
-            cmd,
-            -VisionConstants.kAimMaxOmegaRadPerSec,
-             VisionConstants.kAimMaxOmegaRadPerSec
-        );
+              double cmd = m_aimPid.calculate(yawErrRad, 0.0);
+              omega = clamp(cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
 
-        SmartDashboard.putBoolean("AimAssist/Active", true);
-        SmartDashboard.putNumber("AimAssist/TargetID", bestAllowed.getFiducialId());
-        SmartDashboard.putNumber("AimAssist/TargetYawDegRaw", bestAllowed.getYaw());
-        SmartDashboard.putNumber("AimAssist/TargetYawDegCorrected", correctedYawDeg);
-        SmartDashboard.putNumber("AimAssist/YawErrRad", yawErrRad);
-        SmartDashboard.putNumber("AimAssist/PIDCmd", cmd);
-        SmartDashboard.putNumber("AimAssist/Omega", omega);
-    } else {
-        m_aimPid.reset();
-        SmartDashboard.putBoolean("AimAssist/Active", false);
-    }
+              SmartDashboard.putBoolean("AimAssist/Active", true);
+              SmartDashboard.putNumber("AimAssist/TargetID", bestAllowed.getFiducialId());
+              SmartDashboard.putNumber("AimAssist/TargetYawDegRaw", bestAllowed.getYaw());
+              SmartDashboard.putNumber("AimAssist/TargetYawDegCorrected", correctedYawDeg);
+              SmartDashboard.putNumber("AimAssist/YawErrRad", yawErrRad);
+              SmartDashboard.putNumber("AimAssist/PIDCmd", cmd);
+              SmartDashboard.putNumber("AimAssist/Omega", omega);
+            } else {
+              m_aimPid.reset();
+              SmartDashboard.putBoolean("AimAssist/Active", false);
+            }
 
-} else {
-    m_aimPid.reset();
-    SmartDashboard.putBoolean("AimAssist/Active", false);
-}
+          } else {
+            m_aimPid.reset();
+            SmartDashboard.putBoolean("AimAssist/Active", false);
+          }
 
-// Return the requested drive command using the possibly-updated omega
-return drive.withVelocityX(vx)
-            .withVelocityY(vy)
-            .withRotationalRate(omega);
-    })
-);
+          return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+        })
+    );
   }
+
   // Schedule this on enable in Robot.java
   public Command getEnableArmDropCommand() {
     return new IntakeArmEnableDropCommand(m_intakeArmSubsystem);
@@ -471,10 +452,7 @@ return drive.withVelocityX(vx)
     SmartDashboard.putString("HUB Status", status);
   }
 
-
   public Command getAutonomousCommand() {
-    // PathPlanner auto selected from dashboard
     return m_autoChooser.getSelected();
   }
- 
 }
