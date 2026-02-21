@@ -227,7 +227,7 @@ m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysI
             m_intakeSubsystem));
 
     // Shooter RPS
-    SmartDashboard.putNumber("Shooter/TargetRPS", 100);
+    SmartDashboard.putNumber("Shooter/TargetRPS", 200);
     m_driverController.y().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
