@@ -316,47 +316,63 @@ m_driverController.leftBumper().whileTrue(
         // Default rotation = 0 while aiming (you can change this later)
         double omega = 0.0;
 
-        var result = m_aimCam.getLatestResult();
-        if (result.hasTargets()) {
-            var best = result.getBestTarget();
-            if (best.getFiducialId() == 10) {
-                // Photon yaw is DEGREES
-                double yawErrRad = Math.toRadians(best.getYaw());
+       var result = m_aimCam.getLatestResult();
+if (result.hasTargets()) {
+
+    org.photonvision.targeting.PhotonTrackedTarget bestAllowed = null;
+    double bestAbsYaw = 1e9;
+
+    for (var t : result.getTargets()) {
+        int id = t.getFiducialId();
+
+        boolean allowed = false;
+        for (int a : VisionConstants.kAimTagIds) {
+            if (id == a) { allowed = true; break; }
+        }
+        if (!allowed) continue;
+
+        double absYaw = Math.abs(t.getYaw());
+        if (absYaw < bestAbsYaw) {
+            bestAbsYaw = absYaw;
+            bestAllowed = t;
+        }
+    }
+
+    if (bestAllowed != null) {
+        double correctedYawDeg = bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg;
+        double yawErrRad = Math.toRadians(correctedYawDeg);
+
         double cmd = m_aimPid.calculate(yawErrRad, 0.0);
         omega = clamp(
-          cmd,
-          -VisionConstants.kAimMaxOmegaRadPerSec,
-           VisionConstants.kAimMaxOmegaRadPerSec
+            cmd,
+            -VisionConstants.kAimMaxOmegaRadPerSec,
+             VisionConstants.kAimMaxOmegaRadPerSec
         );
 
-        // Telemetry for debugging
         SmartDashboard.putBoolean("AimAssist/Active", true);
-        SmartDashboard.putNumber("AimAssist/TargetYawDeg", best.getYaw());
+        SmartDashboard.putNumber("AimAssist/TargetID", bestAllowed.getFiducialId());
+        SmartDashboard.putNumber("AimAssist/TargetYawDegRaw", bestAllowed.getYaw());
+        SmartDashboard.putNumber("AimAssist/TargetYawDegCorrected", correctedYawDeg);
         SmartDashboard.putNumber("AimAssist/YawErrRad", yawErrRad);
         SmartDashboard.putNumber("AimAssist/PIDCmd", cmd);
         SmartDashboard.putNumber("AimAssist/Omega", omega);
-            } else {
-                m_aimPid.reset();
-            }
-        } else {
-      m_aimPid.reset();
-      SmartDashboard.putBoolean("AimAssist/Active", false);
-      SmartDashboard.putNumber("AimAssist/TargetYawDeg", Double.NaN);
-      SmartDashboard.putNumber("AimAssist/YawErrRad", Double.NaN);
-      SmartDashboard.putNumber("AimAssist/PIDCmd", Double.NaN);
-      SmartDashboard.putNumber("AimAssist/Omega", Double.NaN);
-        }
+    } else {
+        m_aimPid.reset();
+        SmartDashboard.putBoolean("AimAssist/Active", false);
+    }
 
-        return drive.withVelocityX(vx)
-                    .withVelocityY(vy)
-                    .withRotationalRate(omega);
+} else {
+    m_aimPid.reset();
+    SmartDashboard.putBoolean("AimAssist/Active", false);
+}
+
+// Return the requested drive command using the possibly-updated omega
+return drive.withVelocityX(vx)
+            .withVelocityY(vy)
+            .withRotationalRate(omega);
     })
 );
-
-
-
-          }
-
+  }
   // Schedule this on enable in Robot.java
   public Command getEnableArmDropCommand() {
     return new IntakeArmEnableDropCommand(m_intakeArmSubsystem);
