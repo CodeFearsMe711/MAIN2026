@@ -18,8 +18,5 @@ public class IntakeArmCommand extends Command {
     arm.setGoalDegrees(targetDeg);
   }
 
-  @Override
-  public boolean isFinished() {
-    return arm.atGoal();
-  }
+
 }

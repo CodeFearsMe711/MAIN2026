@@ -138,10 +138,6 @@ public class RobotContainer {
     return drivetrain;
   }
 
-  public IntakeArmSubsystem getIntakeArmSubsystem() {
-    return m_intakeArmSubsystem;
-  }
-
   private void configurePathPlanner() {
     try {
       m_robotConfig = RobotConfig.fromGUISettings();
@@ -183,6 +179,9 @@ public class RobotContainer {
   private static double clamp(double x, double lo, double hi) {
     return Math.max(lo, Math.min(hi, x));
   }
+  public frc.robot.subsystems.Intake.IntakeArmSubsystem getIntakeArmSubsystem() {
+  return m_intakeArmSubsystem;
+}
   public void forceArmDownNow() {
   double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
 

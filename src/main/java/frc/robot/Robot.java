@@ -29,6 +29,9 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     leds = new ConnectorXLeds();
     leds.start();
+
+    // Boot-only zero: happens before any commands/autos run
+    m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
   }
 
   @Override

@@ -53,11 +53,7 @@ public class IntakeArmEnableDropCommand extends Command {
     arm.setGoalDegrees(downDeg);
   }
 
-  @Override
-  public boolean isFinished() {
-    // Finish when at goal, or timeout safety
-    return arm.atGoal() || timer.hasElapsed(2.0);
-  }
+
 
   @Override
   public void end(boolean interrupted) {
