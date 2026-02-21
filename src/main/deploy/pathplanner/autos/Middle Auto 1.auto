@@ -19,9 +19,22 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "path",
+                      "type": "parallel",
                       "data": {
-                        "pathName": "5.0"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "5.0"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "IntakeArmDown"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -56,13 +69,19 @@
                       }
                     },
                     {
+                      "type": "path",
+                      "data": {
+                        "pathName": "5.2"
+                      }
+                    },
+                    {
                       "type": "race",
                       "data": {
                         "commands": [
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "5.2"
+                              "pathName": "5.2B"
                             }
                           },
                           {

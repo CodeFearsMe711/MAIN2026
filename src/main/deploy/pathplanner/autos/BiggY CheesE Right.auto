@@ -23,9 +23,22 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "path",
+                            "type": "parallel",
                             "data": {
-                              "pathName": "7.0"
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "IntakeArmDown"
+                                  }
+                                },
+                                {
+                                  "type": "path",
+                                  "data": {
+                                    "pathName": "7.0"
+                                  }
+                                }
+                              ]
                             }
                           },
                           {

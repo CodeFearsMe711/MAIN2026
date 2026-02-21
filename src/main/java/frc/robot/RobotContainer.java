@@ -183,11 +183,23 @@ public class RobotContainer {
   private static double clamp(double x, double lo, double hi) {
     return Math.max(lo, Math.min(hi, x));
   }
+  public void forceArmDownNow() {
+  double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
+
+  double enableCruise = SmartDashboard.getNumber("IntakeArm/EnableCruiseRps",
+      IntakeArmConstants.kEnableCruiseRps_Arm);
+  double enableAccel = SmartDashboard.getNumber("IntakeArm/EnableAccelRps2",
+      IntakeArmConstants.kEnableAccelRps2_Arm);
+
+  m_intakeArmSubsystem.disableManualControl();
+  m_intakeArmSubsystem.setMotionMagicConstraintsArm(enableCruise, enableAccel);
+  m_intakeArmSubsystem.setGoalDegrees(downDeg);
+}
 
   private void configureBindings() {
     // ---- IMPORTANT FIX ----
     // This runs EVERY time the robot transitions to Enabled (including disable->enable mid match).
-    new Trigger(DriverStation::isEnabled).onTrue(getEnableArmDropCommand());
+    new Trigger(DriverStation::isTeleopEnabled).onTrue(getEnableArmDropCommand());
 
     // Reset odometry pose (manual)
     m_driverController.povDown().onTrue(

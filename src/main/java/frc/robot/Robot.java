@@ -1,4 +1,3 @@
-// src/main/java/frc/robot/Robot.java
 package frc.robot;
 
 import com.ctre.phoenix6.HootAutoReplay;
