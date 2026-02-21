@@ -7,19 +7,19 @@ public final class IntakeArmConstants {
   public static final String kCanBus = "rio"; // "" also works for default
 
   // motorRotations = armRotations × kMotorRotationsPerArmRotation
-  public static final double kMotorRotationsPerArmRotation = 36.0;
+  public static final double kMotorRotationsPerArmRotation = 45.0;
 
   // Editable setpoints (ARM/OUTPUT degrees)
   public static final double kPosDegA = -45.0; // DOWN (all the way down)
   public static final double kPosDegB =  0; // UP
 
   // Motion constraints at ARM/OUTPUT (teleop normal)
-  public static final double kCruiseRps_Arm = .2;
-  public static final double kAccelRps2_Arm = .1;
+  public static final double kCruiseRps_Arm = .7;
+  public static final double kAccelRps2_Arm = .5;
 
   // Enable drop constraints (slow, adjustable)
-  public static final double kEnableCruiseRps_Arm = .15;
-  public static final double kEnableAccelRps2_Arm = .08;
+  public static final double kEnableCruiseRps_Arm = .35;
+  public static final double kEnableAccelRps2_Arm = .25;
 
   // Tune these
   public static final double kP = 1;

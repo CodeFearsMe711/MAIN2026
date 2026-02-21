@@ -48,21 +48,28 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
+                            "type": "race",
                             "data": {
-                              "name": "agitater"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Shooter feed"
-                            }
-                          },
-                          {
-                            "type": "wait",
-                            "data": {
-                              "waitTime": 2.0
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "agitater"
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "Shooter feed"
+                                  }
+                                },
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.0
+                                  }
+                                }
+                              ]
                             }
                           },
                           {
@@ -70,15 +77,15 @@
                             "data": {
                               "commands": [
                                 {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "IntakeArmUp"
-                                  }
-                                },
-                                {
                                   "type": "wait",
                                   "data": {
                                     "waitTime": 1.5
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "IntakeArmUp"
                                   }
                                 }
                               ]
