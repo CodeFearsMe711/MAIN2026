@@ -39,17 +39,18 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
     // Do NOT set goal here based on sensor value.
     // We will "soft zero" once on startup in periodic.
+
+    
   }
 
   @Override
   public void periodic() {
     // Soft-zero once after startup (makes "wherever we boot" = 0)
-    if (!hasSoftZeroed) {
-      motor.setPosition(0);
-      goalMotorRot = 0.0;
-      hasSoftZeroed = true;
-    }
-
+   if (!hasSoftZeroed) {
+  motor.setPosition(0);
+  // DO NOT touch goalMotorRot here — commands may have already set it
+  hasSoftZeroed = true;
+}
     // If a command has requested manual control, obey that (this will override
     // the normal Motion Magic position-holding). Otherwise hold the goal.
     if (manualControl) {
@@ -126,4 +127,13 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private static double armRps2ToMotorRps2(double armRps2) {
     return armRps2 * IntakeArmConstants.kMotorRotationsPerArmRotation;
   }
+
+  public boolean isSoftZeroed() {
+  return hasSoftZeroed;
+}
+
+public void softZeroNow() {
+  motor.setPosition(0);
+  hasSoftZeroed = true;
+}
 }

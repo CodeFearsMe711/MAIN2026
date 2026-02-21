@@ -15,6 +15,9 @@ public class IntakeArmEnableDropCommand extends Command {
 
   @Override
   public void initialize() {
+    if (!arm.isSoftZeroed()) {
+  arm.softZeroNow();
+}
     double cruise = SmartDashboard.getNumber(
         "IntakeArm/EnableCruiseRps",
         IntakeArmConstants.kEnableCruiseRps_Arm);
