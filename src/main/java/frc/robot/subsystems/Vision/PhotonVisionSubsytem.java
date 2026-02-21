@@ -120,7 +120,8 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     }
 
     if (best == null) return Optional.empty();
-    return Optional.of(Units.degreesToRadians(best.getYaw()));
+    double correctedYawDeg = best.getYaw() + VisionConstants.kAimYawOffsetDeg;
+    return Optional.of(Units.degreesToRadians(correctedYawDeg));
   }
 
   /** Dynamic measurement uncertainty for Kalman fusion. */

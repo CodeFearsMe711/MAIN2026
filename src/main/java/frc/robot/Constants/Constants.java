@@ -35,7 +35,7 @@ public final class Constants {
             new Rotation3d(
                 0.0,                        // roll
                 Units.degreesToRadians(17.6),// pitch
-                Units.degreesToRadians(0.0) // yaw
+                Units.degreesToRadians(0) // yaw
             )
         );
 
@@ -66,5 +66,7 @@ public final class Constants {
 
     // Deadband for small yaw errors
     public static final double kAimMinErrorRad = Units.degreesToRadians(1.5);
+    // Aiming-only yaw trim (deg). + means pretend target is more to the right.
+    public static final double kAimYawOffsetDeg = -30.0;
   }
 }
