@@ -57,7 +57,7 @@ public final class Constants {
     public static final int[] kAimTagIds = { 10, 26, 21, 18}; // TODO: replace with your actual tag IDs
 
     // PID gains for turning to face the tag using yaw error
-    public static final double kAimKp = 3;
+    public static final double kAimKp = 5;
     public static final double kAimKi = 0.0;
     public static final double kAimKd = 0.25;
 
@@ -66,17 +66,26 @@ public final class Constants {
 
     // Deadband for small yaw errors
     public static final double kAimMinErrorRad = Units.degreesToRadians(1.5);
+
     // Aiming-only yaw trim (deg). + means pretend target is more to the right.
     public static final double kAimYawOffsetDeg = 10.0;
-    public static final class AimAssistConstants {
-    public static final double TARGET_DISTANCE_METERS = 2.0;
 
-    public static final double DISTANCE_kP = 1.2;
-    public static final double DISTANCE_kI = 0.0;
-    public static final double DISTANCE_kD = 0.0;
+    // =========================
+    // Aim Assist: RANGE HOLD (teleop)
+    // =========================
 
-    public static final double ROTATION_kP = 0.02;  // keep yours if different
-    public static final double MAX_FORWARD_SPEED = 2.0;  // m/s clamp
-}
+    // Desired distance away from the hub/tag (meters)
+    public static final double kAimTargetDistanceMeters = 1.5;
+
+    // PID gains for distance hold (camera-to-tag distance)
+    public static final double kAimRangeKp = 0.1;
+    public static final double kAimRangeKi = 0.0;
+    public static final double kAimRangeKd = 0.0;
+
+    // Clamp for automatic in/out correction while aiming (m/s)
+    public static final double kAimMaxRangeSpeedMps = 1.25;
+
+    // Deadband around the target distance (meters)
+    public static final double kAimRangeDeadbandMeters = 0.10;
   }
 }

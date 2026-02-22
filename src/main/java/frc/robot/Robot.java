@@ -34,39 +34,58 @@ public class Robot extends TimedRobot {
     m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
   }
 
-  @Override
-  public void robotPeriodic() {
-    try {
+  // Robot.java
+
+private double m_lastDashTime = 0.0;
+private double m_lastHeavyTime = 0.0;
+
+@Override
+public void robotPeriodic() {
+  try {
+    // Always run the scheduler first, every loop
+    CommandScheduler.getInstance().run();
+
+    final double now = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+
+    // Fast dashboard (10 Hz)
+    if ((now - m_lastDashTime) >= 0.10) {
+      m_lastDashTime = now;
+
       SmartDashboard.putNumber("Test", 42);
 
-      m_timeAndJoystickReplay.update();
+      if (m_robotContainer != null) {
+        SmartDashboard.putNumber(
+            "Arm Degrees",
+            m_robotContainer.getIntakeArmSubsystem().getDegrees()
+        );
 
-      m_robotContainer.updateVisionFusion();
-      m_robotContainer.publishMatchHubStatus();
-
-      SmartDashboard.putNumber("Arm Degrees", m_robotContainer.getIntakeArmSubsystem().getDegrees());
-
-      CommandScheduler.getInstance().run();
-
-      if (m_robotContainer != null && m_robotContainer.getDrivetrain() != null) {
-        Pose2d pose = m_robotContainer.getDrivetrain().getState().Pose;
-
-        SmartDashboard.putNumber("Odo/X_m", pose.getX());
-        SmartDashboard.putNumber("Odo/Y_m", pose.getY());
-        SmartDashboard.putNumber("Odo/Heading_deg", pose.getRotation().getDegrees());
+        if (m_robotContainer.getDrivetrain() != null) {
+          Pose2d pose = m_robotContainer.getDrivetrain().getState().Pose;
+          SmartDashboard.putNumber("Odo/X_m", pose.getX());
+          SmartDashboard.putNumber("Odo/Y_m", pose.getY());
+          SmartDashboard.putNumber("Odo/Heading_deg", pose.getRotation().getDegrees());
+        }
       }
-    } catch (Exception e) {
-      DriverStation.reportError("robotPeriodic exception: " + e.getMessage(), e.getStackTrace());
     }
-  }
 
-  @Override
-  public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    // Heavy work (5 Hz) — vision fusion / hub status / replay updates
+    if ((now - m_lastHeavyTime) >= 0.20) {
+      m_lastHeavyTime = now;
+
+      if (m_timeAndJoystickReplay != null) {
+        m_timeAndJoystickReplay.update();
+      }
+
+      if (m_robotContainer != null) {
+        m_robotContainer.updateVisionFusion();
+        m_robotContainer.publishMatchHubStatus();
+      }
     }
+
+  } catch (Exception e) {
+    DriverStation.reportError("robotPeriodic exception: " + e.getMessage(), e.getStackTrace());
   }
+}
 
   @Override
   public void teleopInit() {

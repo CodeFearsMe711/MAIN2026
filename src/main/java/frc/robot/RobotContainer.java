@@ -105,7 +105,7 @@ public class RobotContainer {
       new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
 
   private final edu.wpi.first.math.controller.PIDController m_aimPid =
-      new edu.wpi.first.math.controller.PIDController(4.0, 0.0, 0.2);
+      new edu.wpi.first.math.controller.PIDController(6.0, 0.0, 0);
   private final edu.wpi.first.math.controller.PIDController m_rangePid =
     new edu.wpi.first.math.controller.PIDController(
         VisionConstants.kAimRangeKp,
