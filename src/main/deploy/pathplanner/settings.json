@@ -3,12 +3,13 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
+    "BiggY CheesE Left",
+    "BiggY CheesE Right",
     "Blue Left",
     "Middle Auto 1",
     "Middle Right",
     "Miscellaneous",
-    "BiggY CheesE Left",
-    "BiggY CheesE Right"
+    "New Folder"
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.0,
