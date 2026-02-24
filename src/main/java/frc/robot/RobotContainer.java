@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.Constants.OperatorConstants;
 import frc.robot.Constants.Constants.VisionConstants;
 import frc.robot.Constants.IntakeArmConstants;
+import frc.robot.Constants.ClimberConstants;
 
 import frc.robot.SWERVE.CommandSwerveDrivetrain;
 import frc.robot.SWERVE.Telemetry;
@@ -42,6 +43,7 @@ import frc.robot.SWERVE.TunerConstants;
 
 import frc.robot.commands.Intake.IntakeArmCommand;
 import frc.robot.commands.Intake.IntakeArmEnableDropCommand;
+import frc.robot.commands.Climber.ClimberCommand;
 import frc.robot.commands.AimHubTagOverride;
 
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
@@ -53,6 +55,10 @@ import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoSource;
 
 import frc.robot.commands.NamedCommands.*;
 
@@ -93,6 +99,12 @@ public class RobotContainer {
   private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
   @SuppressWarnings("unused")
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
+  @SuppressWarnings("unused")
+  private final ClimberCommand m_climberUpCommand = new ClimberCommand(m_ClimberSubsystem,
+    SmartDashboard.getNumber("Climber/UpDeg", ClimberConstants.kDefaultMaxDeg), ClimberConstants.kDefaultMaxDeg);
+  @SuppressWarnings("unused")
+  private final ClimberCommand m_climberDownCommand = new ClimberCommand(m_ClimberSubsystem,
+    SmartDashboard.getNumber("Climber/DownDeg", ClimberConstants.kDefaultMinDeg), ClimberConstants.kDefaultMaxDeg);
 
   private final ShooterSubsystem m_shootersubsystem = new ShooterSubsystem();
   private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
@@ -135,8 +147,10 @@ public class RobotContainer {
 
     m_autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
-
+    CameraServer.startAutomaticCapture();
     configureBindings();
+
+    startDriverCam();
   }
 
   public CommandSwerveDrivetrain getDrivetrain() {
@@ -168,7 +182,12 @@ public class RobotContainer {
         drivetrain
     );
   }
-
+private void startDriverCam() {
+    UsbCamera cam = CameraServer.startAutomaticCapture(1);  // start with 0 first
+    cam.setResolution(320, 240);
+    cam.setFPS(15);
+    cam.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen);
+}
   private void configureNamedCommands() {
     NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
     NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
@@ -179,6 +198,11 @@ public class RobotContainer {
         SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB)));
     NamedCommands.registerCommand("IntakeArmDown", new IntakeArmCommand(m_intakeArmSubsystem,
         SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
+  // Climber named commands (Up = default max, Down = default min)
+  NamedCommands.registerCommand("ClimberUp", new ClimberCommand(m_ClimberSubsystem,
+    SmartDashboard.getNumber("Climber/UpDeg", ClimberConstants.kDefaultMaxDeg), ClimberConstants.kDefaultMaxDeg));
+  NamedCommands.registerCommand("ClimberDown", new ClimberCommand(m_ClimberSubsystem,
+    SmartDashboard.getNumber("Climber/DownDeg", ClimberConstants.kDefaultMinDeg), ClimberConstants.kDefaultMaxDeg));
   }
 
   private static double clamp(double x, double lo, double hi) {
@@ -312,6 +336,24 @@ public class RobotContainer {
         )
     );
     
+
+  // =========================
+  // CLIMBER buttons: A => Up (default 90°), B => Down (0°)
+  // =========================
+  SmartDashboard.putNumber("Climber/UpDeg", ClimberConstants.kDefaultMaxDeg);
+  SmartDashboard.putNumber("Climber/DownDeg", ClimberConstants.kDefaultMinDeg);
+
+  c_driverController.y().onTrue(
+    new ClimberCommand(m_ClimberSubsystem,
+      SmartDashboard.getNumber("Climber/UpDeg", ClimberConstants.kDefaultMaxDeg),
+      ClimberConstants.kDefaultMaxDeg)
+  );
+
+  c_driverController.x().onTrue(
+    new ClimberCommand(m_ClimberSubsystem,
+      SmartDashboard.getNumber("Climber/DownDeg", ClimberConstants.kDefaultMinDeg),
+      ClimberConstants.kDefaultMaxDeg)
+  );
 
 // =========================
 // AIM ASSIST (teleop)
