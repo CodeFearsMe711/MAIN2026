@@ -87,5 +87,12 @@ public final class Constants {
 
     // Deadband around the target distance (meters)
     public static final double kAimRangeDeadbandMeters = 0.10;
+
+    // =========================
+    // Shoot-on-the-move lead compensation
+    // =========================
+    public static final double kAimFlightTimeSec = 0.35;            // start ~0.30–0.45
+    public static final double kAimMaxLeadDeg = 8.0;                // clamp
+    public static final double kAimLeadScale = 1.0;                 // 1.0 = pure physics, tune 0.6–1.4
   }
 }
