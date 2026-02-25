@@ -393,100 +393,144 @@ m_driverController.leftBumper().whileTrue(
 
         if (bestAllowed != null) {
           // ----- yaw aim -----
-          double correctedYawDeg = bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg;
-          double yawErrRad = Math.toRadians(correctedYawDeg);
-
-          double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-          omega = clamp(cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
-
-          // ----- range hold (camera-to-tag distance) -----
           double distMeters = bestAllowed.getBestCameraToTarget().getTranslation().getNorm();
-          double distErr = distMeters - VisionConstants.kAimTargetDistanceMeters;
 
-          if (Math.abs(distErr) < VisionConstants.kAimRangeDeadbandMeters) {
-            rangeVRobot = 0.0;
-            m_rangePid.reset();
-          } else {
-            double rangeCmd = m_rangePid.calculate(distMeters, VisionConstants.kAimTargetDistanceMeters);
-            // Invert so: too far => +forward, too close => -back
-            rangeVRobot = -rangeCmd;
+      // Direction from robot -> hub, in FIELD coordinates
+      var pose = drivetrain.getState().Pose;
+      double dx = /* hubX */ 0.0 - pose.getX();
+      double dy = /* hubY */ 0.0 - pose.getY();
+      double norm = Math.hypot(dx, dy);
 
-            rangeVRobot = clamp(
-                rangeVRobot,
-                -VisionConstants.kAimMaxRangeSpeedMps,
-                VisionConstants.kAimMaxRangeSpeedMps
-            );
-          }
-
-        } else {
-          m_aimPid.reset();
-          m_rangePid.reset();
-        }
-
+      // If you don't have hub field position, approximate direction using robot heading:
+      // We'll fall back to heading-based lead (still works reasonably)
+      double ux, uy;
+      if (norm > 1e-6) {
+        ux = dx / norm;
+        uy = dy / norm;
       } else {
-        m_aimPid.reset();
-        m_rangePid.reset();
+        var heading = pose.getRotation();
+        ux = heading.getCos();
+        uy = heading.getSin();
       }
 
-      // Convert robot-forward range correction into field-centric vx/vy
-      if (Math.abs(rangeVRobot) > 1e-6) {
-        var heading = drivetrain.getState().Pose.getRotation();
-        vx += rangeVRobot * heading.getCos();
-        vy += rangeVRobot * heading.getSin();
-      }
+      // Use your CURRENT commanded field velocities as velocity estimate
+      double vxf = vx;  // field m/s
+      double vyf = vy;  // field m/s
 
-      return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
-    })
-);
-  }
+      // Lateral speed relative to robot->hub line (positive = left of line)
+      double vLat = (-uy) * vxf + (ux) * vyf;
 
-  public void updateVisionFusion() {
-    Pose2d currentPose = drivetrain.getState().Pose;
+      // Physics lead angle
+      double leadRad = Math.atan2(
+          (vLat * VisionConstants.kAimFlightTimeSec * VisionConstants.kAimLeadScale),
+          Math.max(distMeters, 0.25)
+      );
 
-    var opt = m_photonVision.getEstimatedGlobalPose(currentPose);
-    if (opt.isEmpty()) return;
+      double leadDeg = Math.toDegrees(leadRad);
+      leadDeg = edu.wpi.first.math.MathUtil.clamp(
+          leadDeg,
+          -VisionConstants.kAimMaxLeadDeg,
+          VisionConstants.kAimMaxLeadDeg
+      );
 
-    EstimatedRobotPose est = opt.get();
-    Pose2d visionPose = est.estimatedPose.toPose2d();
-    double ts = est.timestampSeconds;
+      // If moving left, aim right => subtract lead
+      double correctedYawDeg =
+          bestAllowed.getYaw()
+              + VisionConstants.kAimYawOffsetDeg
+              - leadDeg;
+                double yawErrRad = Math.toRadians(correctedYawDeg);
 
-    double now = Timer.getFPGATimestamp();
-    if ((now - ts) > kMaxVisionStalenessSec) return;
+                double cmd = m_aimPid.calculate(yawErrRad, 0.0);
+                omega = clamp(cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
 
-    double dt = (m_lastVisionTimestamp < 0.0) ? 0.02 : (ts - m_lastVisionTimestamp);
-    if (dt <= 0.0) dt = 0.02;
+                // ----- range hold (camera-to-tag distance) -----
+                // reuse distMeters declared above
+                double distErr = distMeters - VisionConstants.kAimTargetDistanceMeters;
 
-    double posTol = kBasePosTolMeters + kPosTolPerSecMeters * dt;
-    double rotTol = kBaseRotTolRad + kRotTolPerSecRad * dt;
-
-    Translation2d posDelta = visionPose.getTranslation().minus(currentPose.getTranslation());
-    double posErr = posDelta.getNorm();
-    double rotErr = Math.abs(visionPose.getRotation().minus(currentPose.getRotation()).getRadians());
-
-    if (est.targetsUsed.size() <= 1) {
-      posTol *= 0.75;
-      rotTol *= 0.75;
-    }
-
-    if (posErr > posTol) return;
-    if (rotErr > rotTol) return;
-
-    drivetrain.addVisionMeasurement(
-        visionPose,
-        ts,
-        m_photonVision.getEstimationStdDevs(est)
-    );
-
-    m_lastVisionTimestamp = ts;
-  }
-
-  public void publishMatchHubStatus() {
-    // unchanged from your existing code; leaving out for brevity if you already have it
-  }
-
-  public Command getAutonomousCommand() {
-    return m_autoChooser.getSelected();
-  }
+                if (Math.abs(distErr) < VisionConstants.kAimRangeDeadbandMeters) {
+                  rangeVRobot = 0.0;
+                  m_rangePid.reset();
+                } else {
+                  double rangeCmd = m_rangePid.calculate(distMeters, VisionConstants.kAimTargetDistanceMeters);
+                  // Invert so: too far => +forward, too close => -back
+                  rangeVRobot = -rangeCmd;
+                
+                  rangeVRobot = clamp(
+                      rangeVRobot,
+                      -VisionConstants.kAimMaxRangeSpeedMps,
+                      VisionConstants.kAimMaxRangeSpeedMps
+                  );
+                }
+              
+              } else {
+                m_aimPid.reset();
+                m_rangePid.reset();
+              }
+            
+            } else {
+              m_aimPid.reset();
+              m_rangePid.reset();
+            }
+          
+            // Convert robot-forward range correction into field-centric vx/vy
+            if (Math.abs(rangeVRobot) > 1e-6) {
+              var heading = drivetrain.getState().Pose.getRotation();
+              vx += rangeVRobot * heading.getCos();
+              vy += rangeVRobot * heading.getSin();
+            }
+          
+            return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+          })
+      );
+        }
+      
+        public void updateVisionFusion() {
+          Pose2d currentPose = drivetrain.getState().Pose;
+        
+          var opt = m_photonVision.getEstimatedGlobalPose(currentPose);
+          if (opt.isEmpty()) return;
+        
+          EstimatedRobotPose est = opt.get();
+          Pose2d visionPose = est.estimatedPose.toPose2d();
+          double ts = est.timestampSeconds;
+        
+          double now = Timer.getFPGATimestamp();
+          if ((now - ts) > kMaxVisionStalenessSec) return;
+        
+          double dt = (m_lastVisionTimestamp < 0.0) ? 0.02 : (ts - m_lastVisionTimestamp);
+          if (dt <= 0.0) dt = 0.02;
+        
+          double posTol = kBasePosTolMeters + kPosTolPerSecMeters * dt;
+          double rotTol = kBaseRotTolRad + kRotTolPerSecRad * dt;
+        
+          Translation2d posDelta = visionPose.getTranslation().minus(currentPose.getTranslation());
+          double posErr = posDelta.getNorm();
+          double rotErr = Math.abs(visionPose.getRotation().minus(currentPose.getRotation()).getRadians());
+        
+          if (est.targetsUsed.size() <= 1) {
+            posTol *= 0.75;
+            rotTol *= 0.75;
+          }
+        
+          if (posErr > posTol) return;
+          if (rotErr > rotTol) return;
+        
+          drivetrain.addVisionMeasurement(
+              visionPose,
+              ts,
+              m_photonVision.getEstimationStdDevs(est)
+          );
+        
+          m_lastVisionTimestamp = ts;
+        }
+      
+        public void publishMatchHubStatus() {
+          // unchanged from your existing code; leaving out for brevity if you already have it
+        }
+      
+        public Command getAutonomousCommand() {
+          return m_autoChooser.getSelected();
+        }
   public Command getEnableArmDropCommand() {
   return Commands.sequence(
 
