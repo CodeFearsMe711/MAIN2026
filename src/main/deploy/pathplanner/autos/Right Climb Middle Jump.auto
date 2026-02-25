@@ -5,7 +5,7 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "race",
           "data": {
             "commands": [
               {
@@ -21,7 +21,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "9.1"
+                        "pathName": "10.1"
                       }
                     },
                     {
@@ -43,7 +43,7 @@
                           {
                             "type": "wait",
                             "data": {
-                              "waitTime": 3.0
+                              "waitTime": 2.5
                             }
                           }
                         ]
@@ -52,7 +52,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "9.2"
+                        "pathName": "10.2"
                       }
                     },
                     {
@@ -68,7 +68,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "9.3"
+                              "pathName": "10.3"
                             }
                           }
                         ]
@@ -87,49 +87,49 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "9.4"
+                              "pathName": "10.4"
                             }
                           }
                         ]
                       }
-                    },
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "race",
+                "data": {
+                  "commands": [
                     {
-                      "type": "race",
+                      "type": "parallel",
                       "data": {
                         "commands": [
                           {
-                            "type": "parallel",
+                            "type": "named",
+                            "data": {
+                              "name": "Shooter feed"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "agitater"
+                            }
+                          },
+                          {
+                            "type": "sequential",
                             "data": {
                               "commands": [
                                 {
-                                  "type": "named",
+                                  "type": "wait",
                                   "data": {
-                                    "name": "Shooter feed"
+                                    "waitTime": 0.2
                                   }
                                 },
                                 {
                                   "type": "named",
                                   "data": {
-                                    "name": "agitater"
-                                  }
-                                },
-                                {
-                                  "type": "sequential",
-                                  "data": {
-                                    "commands": [
-                                      {
-                                        "type": "wait",
-                                        "data": {
-                                          "waitTime": 0.2
-                                        }
-                                      },
-                                      {
-                                        "type": "named",
-                                        "data": {
-                                          "name": "IntakeArmUp"
-                                        }
-                                      }
-                                    ]
+                                    "name": "IntakeArmUp"
                                   }
                                 }
                               ]
@@ -137,37 +137,37 @@
                           }
                         ]
                       }
-                    },
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "race",
+                "data": {
+                  "commands": [
                     {
-                      "type": "race",
+                      "type": "named",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberUp"
-                            }
-                          },
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "9.5"
-                            }
-                          }
-                        ]
+                        "name": "ClimberUp"
                       }
                     },
                     {
-                      "type": "sequential",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberDown"
-                            }
-                          }
-                        ]
+                        "pathName": "10.5"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "ClimberDown"
                       }
                     }
                   ]
