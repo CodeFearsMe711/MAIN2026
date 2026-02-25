@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.4210128205128223,
-        "y": 5.500153846153847
+        "x": 6.851358974358975,
+        "y": 2.9186923076923086
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.113826064811113,
-        "y": 5.599123934080712
+        "x": 7.851358974358975,
+        "y": 2.918692307692309
       },
       "isLocked": false,
-      "linkedName": "9.1END"
+      "linkedName": "10.2"
     },
     {
       "anchor": {
-        "x": 1.1767948717948733,
-        "y": 5.976910256410256
+        "x": 2.4326410256410265,
+        "y": 3.1512564102564102
       },
       "prevControl": {
-        "x": 1.9884415760939051,
-        "y": 6.036133867987773
+        "x": 4.2698974358974375,
+        "y": 1.7791282051282051
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "9.2 (END) #3"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 17.969139740157054
   },
   "reversed": false,
-  "folder": "Left Climb EMBO",
+  "folder": "New Folder",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -37.34934904464067
+    "rotation": 1.2188752351313346
   },
   "useDefaultConstraints": true
 }
