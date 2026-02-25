@@ -266,17 +266,24 @@ private void startDriverCam() {
 
     // Intake RPS
     SmartDashboard.putNumber("Intake/TargetRPS", 35);
-    m_driverController.x().whileTrue(
+    c_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
             () -> m_intakeSubsystem.stop(),
             m_intakeSubsystem));
 
-    // Shooter RPS
+    // Main Shooter RPS
     SmartDashboard.putNumber("Shooter/TargetRPS", 200);
-    m_driverController.y().whileTrue(
+    m_driverController.a().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
+            () -> m_shootersubsystem.stop(),
+            m_shootersubsystem));
+    // Lower shooter RPS 
+     SmartDashboard.putNumber("Shooter/SlowTargetRPS", 80);
+    m_driverController.y().whileTrue(
+        Commands.runEnd(
+            () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/SlowTargetRPS", 0)),
             () -> m_shootersubsystem.stop(),
             m_shootersubsystem));
 
