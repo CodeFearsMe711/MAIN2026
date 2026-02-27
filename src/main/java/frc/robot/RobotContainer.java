@@ -188,6 +188,7 @@ private void startDriverCam() {
     cam.setFPS(15);
     cam.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen);
 }
+
   private void configureNamedCommands() {
     NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
     NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
