@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.946014234875446,
-        "y": 2.0929655990510083
+        "x": 8.227734993931296,
+        "y": 3.664567561581953
       },
       "isLocked": false,
       "linkedName": "7.2"
     },
     {
       "anchor": {
-        "x": 2.556868327402136,
-        "y": 2.641684460260973
+        "x": 5.7738671411625155,
+        "y": 2.512574139976275
       },
       "prevControl": {
-        "x": 3.2487689337511725,
-        "y": 2.616905712109253
+        "x": 6.001543561218637,
+        "y": 2.658727014493503
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "7.1"
+      "linkedName": "7.23"
     }
   ],
   "rotationTargets": [],
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 2.0,
+    "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 720.0,
     "maxAngularAcceleration": 540.0,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 32.66091272167375
+    "rotation": 48.691385986451344
   },
   "reversed": false,
   "folder": "BiggY CheesE Right",
@@ -50,5 +50,5 @@
     "velocity": 0,
     "rotation": 59.74356283647078
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

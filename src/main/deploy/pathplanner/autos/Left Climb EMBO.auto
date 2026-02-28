@@ -75,22 +75,9 @@
                       }
                     },
                     {
-                      "type": "race",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "intake"
-                            }
-                          },
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "9.4"
-                            }
-                          }
-                        ]
+                        "pathName": "9.4"
                       }
                     },
                     {
@@ -143,22 +130,22 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberUp"
-                            }
-                          },
-                          {
                             "type": "path",
                             "data": {
                               "pathName": "9.5"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "ClimberUp"
                             }
                           }
                         ]
                       }
                     },
                     {
-                      "type": "sequential",
+                      "type": "race",
                       "data": {
                         "commands": [
                           {

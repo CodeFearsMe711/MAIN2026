@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.960795454545455,
-        "y": 3.571193181818182
+        "x": 7.826806818181819,
+        "y": 6.044829545454545
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.946014234875446,
-        "y": 2.0929655990510083
+        "x": 7.088958978488061,
+        "y": 5.942113508429536
       },
       "isLocked": false,
-      "linkedName": "7.2"
+      "linkedName": "8.0"
     },
     {
       "anchor": {
-        "x": 2.556868327402136,
-        "y": 2.641684460260973
+        "x": 5.849181494661923,
+        "y": 5.568185053380782
       },
       "prevControl": {
-        "x": 3.2487689337511725,
-        "y": 2.616905712109253
+        "x": 5.509203341161991,
+        "y": 5.4590207568254465
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "7.1"
+      "linkedName": "8.15"
     }
   ],
   "rotationTargets": [],
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 2.0,
+    "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 720.0,
     "maxAngularAcceleration": 540.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 32.66091272167375
+    "rotation": -39.472459848343846
   },
   "reversed": false,
-  "folder": "BiggY CheesE Right",
+  "folder": "BiggY CheesE Left",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.74356283647078
+    "rotation": -59.98163257239077
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

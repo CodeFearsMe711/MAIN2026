@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 37.18470645323318
+    "rotation": 40.080212486820535
   },
   "reversed": false,
-  "folder": "New Folder",
+  "folder": "Right Climb Middle Jump",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

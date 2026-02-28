@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 2.5372948717948725,
-        "y": 1.7558717948717946
+        "x": 2.3524436536180313,
+        "y": 1.8562633451957287
       },
       "prevControl": {
-        "x": 3.5722051282051295,
-        "y": 2.732641025641026
+        "x": 3.3873539100282883,
+        "y": 2.83303257596496
       },
       "nextControl": null,
       "isLocked": false,
@@ -50,7 +50,7 @@
     "rotation": 45.0
   },
   "reversed": false,
-  "folder": "New Folder",
+  "folder": "Right Climb Middle Jump",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

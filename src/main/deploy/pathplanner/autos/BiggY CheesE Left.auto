@@ -92,15 +92,15 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "path",
-                            "data": {
-                              "pathName": "8.2"
-                            }
-                          },
-                          {
                             "type": "named",
                             "data": {
                               "name": "intake"
+                            }
+                          },
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "8.2"
                             }
                           }
                         ]

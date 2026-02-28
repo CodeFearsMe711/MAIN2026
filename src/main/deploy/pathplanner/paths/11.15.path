@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.960795454545455,
-        "y": 3.571193181818182
+        "x": 6.795990510083039,
+        "y": 1.2537485172004734
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.946014234875446,
-        "y": 2.0929655990510083
+        "x": 7.059563986283312,
+        "y": 1.4415746522718615
       },
       "isLocked": false,
-      "linkedName": "7.2"
+      "linkedName": "11.1 END"
     },
     {
       "anchor": {
-        "x": 2.556868327402136,
-        "y": 2.641684460260973
+        "x": 7.635207591933572,
+        "y": 1.9853736654804264
       },
       "prevControl": {
-        "x": 3.2487689337511725,
-        "y": 2.616905712109253
+        "x": 7.2452722059027685,
+        "y": 1.574584853217204
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "7.1"
+      "linkedName": "11.15END"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 32.66091272167375
+    "rotation": 50.46384281323663
   },
   "reversed": false,
-  "folder": "BiggY CheesE Right",
+  "folder": "Jabba",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.74356283647078
+    "rotation": 39.369317242364794
   },
   "useDefaultConstraints": false
 }

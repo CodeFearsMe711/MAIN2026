@@ -5,7 +5,7 @@
     "data": {
       "commands": [
         {
-          "type": "race",
+          "type": "parallel",
           "data": {
             "commands": [
               {
@@ -19,9 +19,22 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "path",
+                      "type": "parallel",
                       "data": {
-                        "pathName": "10.1"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "10.1"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "IntakeArmDown"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -43,7 +56,7 @@
                           {
                             "type": "wait",
                             "data": {
-                              "waitTime": 2.5
+                              "waitTime": 3.0
                             }
                           }
                         ]
@@ -75,45 +88,38 @@
                       }
                     },
                     {
-                      "type": "race",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "intake"
-                            }
-                          },
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "10.4"
-                            }
-                          }
-                        ]
+                        "pathName": "10.4"
                       }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "race",
-                "data": {
-                  "commands": [
+                    },
                     {
                       "type": "parallel",
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
+                            "type": "race",
                             "data": {
-                              "name": "Shooter feed"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "agitater"
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "agitater"
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "Shooter feed"
+                                  }
+                                },
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.0
+                                  }
+                                }
+                              ]
                             }
                           },
                           {
@@ -137,33 +143,26 @@
                           }
                         ]
                       }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "race",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "ClimberUp"
-                      }
                     },
                     {
-                      "type": "path",
+                      "type": "parallel",
                       "data": {
-                        "pathName": "10.5"
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "ClimberUp"
+                            }
+                          },
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "10.5"
+                            }
+                          }
+                        ]
                       }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
+                    },
                     {
                       "type": "named",
                       "data": {
