@@ -10,6 +10,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.TimedRobot;
+
 import frc.robot.subsystems.LEDS.ConnectorXLeds;
 
 public class Robot extends TimedRobot {
@@ -32,8 +36,16 @@ public class Robot extends TimedRobot {
 
     // Boot-only zero: happens before any commands/autos run
     m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
-  }
 
+    // Start automatic capture from the first USB camera (index 0)
+// Start automatic capture from the first USB camera (index 0)
+UsbCamera camera = CameraServer.startAutomaticCapture(0);
+// Optional but recommended: set a reasonable resolution/FPS to reduce
+camera.setResolution(320, 240);
+camera.setFPS(20);
+// If your camera supports MJPEG, this usually helps performance
+// camera.setVideoMode(VideoMode.PixelFormat.kMJPEG, 320, 240, 20);
+}
   // Robot.java
 
 private double m_lastDashTime = 0.0;
