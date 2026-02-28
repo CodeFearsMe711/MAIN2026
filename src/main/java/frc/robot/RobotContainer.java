@@ -147,10 +147,7 @@ public class RobotContainer {
 
     m_autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
-    CameraServer.startAutomaticCapture();
     configureBindings();
-
-    startDriverCam();
   }
 
   public CommandSwerveDrivetrain getDrivetrain() {
@@ -182,12 +179,8 @@ public class RobotContainer {
         drivetrain
     );
   }
-private void startDriverCam() {
-    UsbCamera cam = CameraServer.startAutomaticCapture(1);  // start with 0 first
-    cam.setResolution(320, 240);
-    cam.setFPS(15);
-    cam.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen);
-}
+
+
 
   private void configureNamedCommands() {
     NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
