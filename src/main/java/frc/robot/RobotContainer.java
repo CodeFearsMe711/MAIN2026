@@ -259,7 +259,7 @@ public class RobotContainer {
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // Intake RPS
-    SmartDashboard.putNumber("Intake/TargetRPS", 35);
+    SmartDashboard.putNumber("Intake/TargetRPS", 40);
     c_driverController.rightBumper().whileTrue(
         Commands.runEnd(
             () -> m_intakeSubsystem.setRPS(SmartDashboard.getNumber("Intake/TargetRPS", 0)),
@@ -267,17 +267,17 @@ public class RobotContainer {
             m_intakeSubsystem));
 
     // Main Shooter RPS
-    SmartDashboard.putNumber("Shooter/TargetRPS", 200);
+    SmartDashboard.putNumber("Shooter/TargetRPS", 75);
     m_driverController.a().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
             () -> m_shootersubsystem.stop(),
             m_shootersubsystem));
     // Lower shooter RPS 
-     SmartDashboard.putNumber("Shooter/SlowTargetRPS", 80);
+     SmartDashboard.putNumber("Shooter/FastTargetRPS", 100);
     m_driverController.y().whileTrue(
         Commands.runEnd(
-            () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/SlowTargetRPS", 0)),
+            () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/FastTargetRPS", 0)),
             () -> m_shootersubsystem.stop(),
             m_shootersubsystem));
 

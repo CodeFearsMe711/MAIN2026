@@ -20,6 +20,11 @@ public class ClimberSubsystem extends SubsystemBase {
 	private final TalonFX leftMotor = new TalonFX(ClimberConstants.kLeftMotorId, ClimberConstants.kCanBus);
 	private final TalonFX rightMotor = new TalonFX(ClimberConstants.kRightMotorId, ClimberConstants.kCanBus);
 
+	// Motor direction/sign correction: motor ID 37 (left) is mounted so its
+	// positive output is the opposite of the physical climber rotation.
+	// Use this sign when commanding the left motor and when reading its encoder.
+	private static final double kLeftMotorSign = -1.0;
+
 	private final MotionMagicVoltage mm = new MotionMagicVoltage(0.0);
 
 	private double goalMotorRot = 0.0;
@@ -67,10 +72,14 @@ public class ClimberSubsystem extends SubsystemBase {
 		SmartDashboard.putNumber("Climber/Degrees", getDegrees());
 
 		if (manualControl) {
-			leftMotor.setControl(new com.ctre.phoenix6.controls.VelocityVoltage(climberRpsToMotorRps(manualClimberRps)));
+			// Apply sign correction to the left motor so positive RPS moves the climber
+			// in the same physical direction as the right motor.
+			leftMotor.setControl(new com.ctre.phoenix6.controls.VelocityVoltage(kLeftMotorSign * climberRpsToMotorRps(manualClimberRps)));
 			rightMotor.setControl(new com.ctre.phoenix6.controls.VelocityVoltage(climberRpsToMotorRps(manualClimberRps)));
 		} else {
-			leftMotor.setControl(mm.withPosition(goalMotorRot));
+			// For position control we must also invert the left motor command so both
+			// sides move the climber to the same physical angle.
+			leftMotor.setControl(mm.withPosition(kLeftMotorSign * goalMotorRot));
 			rightMotor.setControl(mm.withPosition(goalMotorRot));
 		}
 	}
@@ -126,7 +135,9 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	private double getMotorRotations() {
-		return leftMotor.getPosition().getValueAsDouble();
+		// Correct the sign of the left encoder reading so the rest of the code can
+		// work in climber-rotation coordinates (positive == up).
+		return kLeftMotorSign * leftMotor.getPosition().getValueAsDouble();
 	}
 
 	private static double degreesToMotorRotations(double climberDeg) {

@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.075729537360108,
-        "y": 7.257378410443346
+        "x": 7.037410256410351,
+        "y": 7.662999999998375
       },
       "isLocked": false,
       "linkedName": "13.2"
     },
     {
       "anchor": {
-        "x": 2.621423487538044,
-        "y": 5.578944246742279
+        "x": 4.130358974358976,
+        "y": 7.407179487179487
       },
       "prevControl": {
-        "x": 2.1695373665416025,
-        "y": 8.763665480431484
+        "x": 5.711794871794873,
+        "y": 7.535089743589745
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,7 +31,7 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5,
-      "rotationDegrees": 0.0
+      "rotationDegrees": -92.40913160006035
     }
   ],
   "constraintZones": [],
@@ -47,7 +47,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -40.42607874009931
+    "rotation": -82.50414236027017
   },
   "reversed": false,
   "folder": "Double Left Trench",

@@ -37,14 +37,9 @@ public class Robot extends TimedRobot {
     // Boot-only zero: happens before any commands/autos run
     m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
 
-    // Start automatic capture from the first USB camera (index 0)
-// Start automatic capture from the first USB camera (index 0)
 UsbCamera camera = CameraServer.startAutomaticCapture(0);
-// Optional but recommended: set a reasonable resolution/FPS to reduce
 camera.setResolution(320, 240);
 camera.setFPS(20);
-// If your camera supports MJPEG, this usually helps performance
-// camera.setVideoMode(VideoMode.PixelFormat.kMJPEG, 320, 240, 20);
 }
   // Robot.java
 
@@ -105,4 +100,13 @@ public void robotPeriodic() {
       CommandScheduler.getInstance().cancelAll();
     }
   }
+
+  @Override
+public void autonomousInit() {
+  m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+
+  if (m_autonomousCommand != null) {
+    m_autonomousCommand.schedule();
+  }
+}
 }

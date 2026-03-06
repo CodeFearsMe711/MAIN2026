@@ -41,9 +41,15 @@
                             }
                           },
                           {
+                            "type": "named",
+                            "data": {
+                              "name": "IntakeArmDown"
+                            }
+                          },
+                          {
                             "type": "wait",
                             "data": {
-                              "waitTime": 3.0
+                              "waitTime": 1.5
                             }
                           }
                         ]
@@ -126,35 +132,9 @@
                       }
                     },
                     {
-                      "type": "race",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "9.5"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberUp"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "race",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberDown"
-                            }
-                          }
-                        ]
+                        "pathName": "9.5"
                       }
                     }
                   ]

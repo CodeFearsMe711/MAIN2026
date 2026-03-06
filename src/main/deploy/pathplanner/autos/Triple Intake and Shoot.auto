@@ -19,13 +19,13 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "parallel",
+                      "type": "race",
                       "data": {
                         "commands": [
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "13.1"
+                              "pathName": "14.1"
                             }
                           },
                           {
@@ -38,7 +38,7 @@
                       }
                     },
                     {
-                      "type": "parallel",
+                      "type": "race",
                       "data": {
                         "commands": [
                           {
@@ -50,7 +50,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "13.2"
+                              "pathName": "14.2"
                             }
                           }
                         ]
@@ -59,7 +59,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "13.4"
+                        "pathName": "14.3"
                       }
                     },
                     {
@@ -89,7 +89,7 @@
                                       {
                                         "type": "wait",
                                         "data": {
-                                          "waitTime": 0.2
+                                          "waitTime": 1.0
                                         }
                                       },
                                       {
@@ -110,11 +110,11 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "13.5"
+                        "pathName": "14.4"
                       }
                     },
                     {
-                      "type": "parallel",
+                      "type": "race",
                       "data": {
                         "commands": [
                           {
@@ -126,7 +126,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "13.7"
+                              "pathName": "14.5"
                             }
                           }
                         ]
@@ -135,15 +135,15 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "13.9"
+                        "pathName": "14.6"
                       }
                     },
                     {
-                      "type": "parallel",
+                      "type": "race",
                       "data": {
                         "commands": [
                           {
-                            "type": "race",
+                            "type": "parallel",
                             "data": {
                               "commands": [
                                 {
@@ -165,7 +165,83 @@
                                       {
                                         "type": "wait",
                                         "data": {
-                                          "waitTime": 0.2
+                                          "waitTime": 1.0
+                                        }
+                                      },
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "IntakeArmUp"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "14.7"
+                      }
+                    },
+                    {
+                      "type": "race",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "intake"
+                            }
+                          },
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "14.8"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "14.9"
+                      }
+                    },
+                    {
+                      "type": "race",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "parallel",
+                            "data": {
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "Shooter feed"
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "agitater"
+                                  }
+                                },
+                                {
+                                  "type": "sequential",
+                                  "data": {
+                                    "commands": [
+                                      {
+                                        "type": "wait",
+                                        "data": {
+                                          "waitTime": 1.0
                                         }
                                       },
                                       {

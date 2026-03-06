@@ -200,24 +200,12 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberUp"
-                            }
-                          },
-                          {
                             "type": "path",
                             "data": {
                               "pathName": "11.6"
                             }
                           }
                         ]
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "ClimberDown"
                       }
                     }
                   ]

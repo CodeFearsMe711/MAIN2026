@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 7.025782051282051,
+        "y": 6.8025128205128205
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0,
-        "y": 7.0
+        "x": 7.444397435897437,
+        "y": 6.430410256410258
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "14.1"
     },
     {
       "anchor": {
-        "x": 4.0,
-        "y": 6.0
+        "x": 7.630448717948719,
+        "y": 6.232730769230769
       },
       "prevControl": {
-        "x": 3.0,
-        "y": 6.0
+        "x": 7.269974358974359,
+        "y": 6.558320512820512
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "14.2"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -42.3574547059351
   },
   "reversed": false,
-  "folder": "Double Left Trench",
+  "folder": "Triple Intake and Shoot",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -45.0
   },
   "useDefaultConstraints": true
 }
