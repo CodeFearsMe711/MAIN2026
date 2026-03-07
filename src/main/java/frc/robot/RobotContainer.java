@@ -43,6 +43,7 @@ import frc.robot.SWERVE.TunerConstants;
 import frc.robot.commands.Intake.IntakeArmCommand;
 import frc.robot.commands.Climber.ManualClimberCommand;
 import frc.robot.commands.AimHubTagOverride;
+import frc.robot.commands.Climber.SetClimberPositionCommand;
 
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
@@ -182,7 +183,17 @@ public class RobotContainer {
         new IntakeArmCommand(
             m_intakeArmSubsystem,
             SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
-  }
+  
+  NamedCommands.registerCommand(
+      "ClimberUp",
+      new SetClimberPositionCommand(m_ClimberSubsystem, 1500)
+  );
+
+  NamedCommands.registerCommand(
+      "ClimberDown",
+      new SetClimberPositionCommand(m_ClimberSubsystem, 1300)
+  );
+}
 
   private static double clamp(double x, double lo, double hi) {
     return Math.max(lo, Math.min(hi, x));
