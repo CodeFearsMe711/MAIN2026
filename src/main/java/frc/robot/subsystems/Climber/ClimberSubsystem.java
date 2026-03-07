@@ -8,12 +8,14 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Constants.ClimberConstants;
 
 public class ClimberSubsystem extends SubsystemBase {
 
   private final TalonFX leftMotor =
       new TalonFX(ClimberConstants.kLeftMotorId, ClimberConstants.kCanBus);
+
   private final TalonFX rightMotor =
       new TalonFX(ClimberConstants.kRightMotorId, ClimberConstants.kCanBus);
 
@@ -57,10 +59,10 @@ public class ClimberSubsystem extends SubsystemBase {
 
     if (autoPositionEnabled) {
 
-      double currentMotorRotations = getMotorRotations();
+      double currentRotations = getMotorRotations();
 
-      boolean movingUp = targetMotorRotations > currentMotorRotations;
-      boolean movingDown = targetMotorRotations < currentMotorRotations;
+      boolean movingUp = targetMotorRotations > currentRotations;
+      boolean movingDown = targetMotorRotations < currentRotations;
 
       if (movingUp && atMaxLimit()) {
         stopMotors();
@@ -74,6 +76,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
       leftMotor.setControl(positionRequest.withPosition(kLeftMotorSign * targetMotorRotations));
       rightMotor.setControl(positionRequest.withPosition(kRightMotorSign * targetMotorRotations));
+
       return;
     }
 
@@ -81,6 +84,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
       if (getDegrees() <= ClimberConstants.kMinDeg ||
           getDegrees() >= ClimberConstants.kMaxDeg) {
+
         stopMotors();
         return;
       }
@@ -149,6 +153,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
     if (getDegrees() <= ClimberConstants.kMinDeg ||
         getDegrees() >= ClimberConstants.kMaxDeg) {
+
       stopMotors();
       return;
     }
@@ -158,8 +163,10 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public void stopMotors() {
+
     holdEnabled = false;
     autoPositionEnabled = false;
+
     leftMotor.stopMotor();
     rightMotor.stopMotor();
   }
@@ -175,6 +182,10 @@ public class ClimberSubsystem extends SubsystemBase {
   public boolean inNearZeroSlowZone() {
     return getDegrees() <=
         (ClimberConstants.kMinDeg + ClimberConstants.kNearZeroSlowZoneDeg);
+  }
+
+  public boolean isAtTargetDegrees(double targetDegrees, double toleranceDeg) {
+    return Math.abs(getDegrees() - targetDegrees) <= toleranceDeg;
   }
 
   public double getDegrees() {

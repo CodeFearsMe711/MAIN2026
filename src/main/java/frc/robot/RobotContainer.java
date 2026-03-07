@@ -267,7 +267,7 @@ public class RobotContainer {
             m_shootersubsystem));
 
     // Lower shooter RPS
-    SmartDashboard.putNumber("Shooter/FastTargetRPS", 100);
+    SmartDashboard.putNumber("Shooter/FastTargetRPS", 125);
     m_driverController.y().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/FastTargetRPS", 0)),
@@ -334,12 +334,14 @@ public class RobotContainer {
     // release = hold current position
     // =========================
     c_driverController.y().whileTrue(
-    new ManualClimberCommand(m_ClimberSubsystem, ManualClimberCommand.Direction.UP)
-);
+    new ManualClimberCommand(
+        m_ClimberSubsystem,
+        ManualClimberCommand.ClimberDirection.UP));
 
 c_driverController.x().whileTrue(
-    new ManualClimberCommand(m_ClimberSubsystem, ManualClimberCommand.Direction.DOWN)
-);
+    new ManualClimberCommand(
+        m_ClimberSubsystem,
+        ManualClimberCommand.ClimberDirection.DOWN));
 
     // =========================
     // AIM ASSIST

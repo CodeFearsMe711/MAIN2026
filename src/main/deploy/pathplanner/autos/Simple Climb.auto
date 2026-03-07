@@ -19,9 +19,16 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "path",
+                      "type": "race",
                       "data": {
-                        "pathName": "12.1"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "12.1"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -56,26 +63,20 @@
                           {
                             "type": "named",
                             "data": {
-                              "name": "IntakeArmUp"
+                              "name": "ClimberUp"
                             }
                           }
                         ]
                       }
                     },
                     {
-                      "type": "parallel",
+                      "type": "race",
                       "data": {
                         "commands": [
                           {
                             "type": "path",
                             "data": {
                               "pathName": "12.2"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberUp"
                             }
                           }
                         ]
