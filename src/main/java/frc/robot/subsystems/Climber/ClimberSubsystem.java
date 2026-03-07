@@ -23,7 +23,14 @@ public class ClimberSubsystem extends SubsystemBase {
 	// Motor direction/sign correction: motor ID 37 (left) is mounted so its
 	// positive output is the opposite of the physical climber rotation.
 	// Use this sign when commanding the left motor and when reading its encoder.
-	private static final double kLeftMotorSign = -1.0;
+	// Flipped from -1.0 to 1.0 to invert the climber direction per user request.
+	private static final double kLeftMotorSign = 1.0;
+
+	// Sign correction for the right motor. If the right side runs opposite the
+	// expected physical direction, set this to -1.0. (User reported right side
+	// moving opposite, so it's initialized to -1.0.)
+	private static final double kRightMotorSign = -1.0;
+	
 
 	private final MotionMagicVoltage mm = new MotionMagicVoltage(0.0);
 
@@ -71,16 +78,22 @@ public class ClimberSubsystem extends SubsystemBase {
 	public void periodic() {
 		SmartDashboard.putNumber("Climber/Degrees", getDegrees());
 
+		// Publish stator current for both climber motors so we can monitor each side
+		double leftStatorCurrent = leftMotor.getStatorCurrent().getValueAsDouble();
+		double rightStatorCurrent = rightMotor.getStatorCurrent().getValueAsDouble();
+		SmartDashboard.putNumber("Climber/Left Stator Current", leftStatorCurrent);
+		SmartDashboard.putNumber("Climber/Right Stator Current", rightStatorCurrent);
+
 		if (manualControl) {
 			// Apply sign correction to the left motor so positive RPS moves the climber
 			// in the same physical direction as the right motor.
 			leftMotor.setControl(new com.ctre.phoenix6.controls.VelocityVoltage(kLeftMotorSign * climberRpsToMotorRps(manualClimberRps)));
-			rightMotor.setControl(new com.ctre.phoenix6.controls.VelocityVoltage(climberRpsToMotorRps(manualClimberRps)));
+			rightMotor.setControl(new com.ctre.phoenix6.controls.VelocityVoltage(kRightMotorSign * climberRpsToMotorRps(manualClimberRps)));
 		} else {
 			// For position control we must also invert the left motor command so both
 			// sides move the climber to the same physical angle.
 			leftMotor.setControl(mm.withPosition(kLeftMotorSign * goalMotorRot));
-			rightMotor.setControl(mm.withPosition(goalMotorRot));
+			rightMotor.setControl(mm.withPosition(kRightMotorSign * goalMotorRot));
 		}
 	}
 
@@ -107,7 +120,9 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	public void disableManualControl() {
-		manualControl = false;
+		// Turn off manual control and hold the current position so the climber
+		// doesn't drive to a previously-set goal when a button is released.
+		holdCurrentPosition();
 	}
 
 	public void setGoalDegrees(double deg) {
@@ -135,9 +150,12 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	private double getMotorRotations() {
-		// Correct the sign of the left encoder reading so the rest of the code can
-		// work in climber-rotation coordinates (positive == up).
-		return kLeftMotorSign * leftMotor.getPosition().getValueAsDouble();
+		// Use the average of both (sign-corrected) encoder readings so we have a
+		// single, robust climber-rotation position. This avoids returning to 0
+		// if one encoder is zeroed or reads incorrectly.
+		double left = kLeftMotorSign * leftMotor.getPosition().getValueAsDouble();
+		double right = kRightMotorSign * rightMotor.getPosition().getValueAsDouble();
+		return 0.5 * (left + right);
 	}
 
 	private static double degreesToMotorRotations(double climberDeg) {

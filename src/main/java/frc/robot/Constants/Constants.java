@@ -68,7 +68,7 @@ public final class Constants {
     public static final double kAimMinErrorRad = Units.degreesToRadians(1.5);
 
     // Aiming-only yaw trim (deg). + means pretend target is more to the right.
-    public static final double kAimYawOffsetDeg = 10.0;
+    public static final double kAimYawOffsetDeg = -10.0;
 
     // =========================
     // Aim Assist: RANGE HOLD (teleop)

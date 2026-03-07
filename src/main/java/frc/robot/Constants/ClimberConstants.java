@@ -14,7 +14,7 @@ public final class ClimberConstants {
 
   // Default software limits (degrees)
   public static final double kDefaultMinDeg = 0.0;
-  public static final double kDefaultMaxDeg = 90.0;
+  public static final double kDefaultMaxDeg = 1175.0;
 
   // Motion constraints and PID (tune on robot)
   public static final double kCruiseRps = 4;

@@ -339,18 +339,18 @@ public class RobotContainer {
     
 
   // =========================
-  // CLIMBER buttons: A => Up (default 90°), B => Down (0°)
+  // CLIMBER buttons: A => Up (default -90°), B => Down (0°)
   // =========================
   SmartDashboard.putNumber("Climber/UpDeg", ClimberConstants.kDefaultMaxDeg);
   SmartDashboard.putNumber("Climber/DownDeg", ClimberConstants.kDefaultMinDeg);
 
-  c_driverController.y().onTrue(
+  c_driverController.y().whileTrue(
     new ClimberCommand(m_ClimberSubsystem,
       SmartDashboard.getNumber("Climber/UpDeg", ClimberConstants.kDefaultMaxDeg),
       ClimberConstants.kDefaultMaxDeg)
   );
 
-  c_driverController.x().onTrue(
+  c_driverController.x().whileTrue(
     new ClimberCommand(m_ClimberSubsystem,
       SmartDashboard.getNumber("Climber/DownDeg", ClimberConstants.kDefaultMinDeg),
       ClimberConstants.kDefaultMaxDeg)

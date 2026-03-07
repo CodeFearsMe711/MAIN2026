@@ -55,8 +55,11 @@ public class ClimberCommand extends Command {
 
 		@Override
 		public void end(boolean interrupted) {
-			// always stop motors when the command ends
-			climber.stop();
+			// When the command ends (either finished or interrupted by release),
+			// hold the current position rather than sending a one-shot stop.
+			// This prevents periodic() from later re-commanding motion to an
+			// earlier goal that the command set in initialize().
+			climber.holdCurrentPosition();
 		}
 
 		@Override
