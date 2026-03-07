@@ -25,25 +25,38 @@
                       }
                     },
                     {
-                      "type": "race",
+                      "type": "parallel",
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
+                            "type": "race",
                             "data": {
-                              "name": "agitater"
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "agitater"
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "Shooter feed"
+                                  }
+                                },
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.0
+                                  }
+                                }
+                              ]
                             }
                           },
                           {
                             "type": "named",
                             "data": {
-                              "name": "Shooter feed"
-                            }
-                          },
-                          {
-                            "type": "wait",
-                            "data": {
-                              "waitTime": 2.0
+                              "name": "IntakeArmUp"
                             }
                           }
                         ]
@@ -58,8 +71,20 @@
                             "data": {
                               "pathName": "12.2"
                             }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "ClimberUp"
+                            }
                           }
                         ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "ClimberDown"
                       }
                     }
                   ]

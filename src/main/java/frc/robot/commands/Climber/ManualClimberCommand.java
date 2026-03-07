@@ -4,15 +4,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
 
 public class ManualClimberCommand extends Command {
-  public enum Direction {
+  public enum ClimberDirection {
     UP,
     DOWN
   }
 
   private final ClimberSubsystem climber;
-  private final Direction direction;
+  private final ClimberDirection direction;
 
-  public ManualClimberCommand(ClimberSubsystem climber, Direction direction) {
+  public ManualClimberCommand(ClimberSubsystem climber, ClimberDirection direction) {
     this.climber = climber;
     this.direction = direction;
     addRequirements(climber);
@@ -20,25 +20,28 @@ public class ManualClimberCommand extends Command {
 
   @Override
   public void initialize() {
-    if (direction == Direction.UP) {
-      climber.driveUp();
-    } else {
-      climber.driveDown();
-    }
   }
 
   @Override
   public void execute() {
-    if (direction == Direction.UP) {
-      climber.driveUp();
+    if (direction == ClimberDirection.UP) {
+      climber.driveUpManual();
     } else {
-      climber.driveDown();
+      climber.driveDownManual();
     }
   }
 
   @Override
   public void end(boolean interrupted) {
-    climber.holdCurrentPosition();
+    if (direction == ClimberDirection.UP) {
+      if (climber.getDegrees() > 50.0) {
+        climber.holdCurrentPosition();
+      } else {
+        climber.stopMotors();
+      }
+    } else {
+      climber.stopMotors();
+    }
   }
 
   @Override

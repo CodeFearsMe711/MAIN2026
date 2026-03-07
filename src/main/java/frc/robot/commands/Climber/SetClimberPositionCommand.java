@@ -5,22 +5,23 @@ import frc.robot.subsystems.Climber.ClimberSubsystem;
 
 public class SetClimberPositionCommand extends Command {
   private final ClimberSubsystem climber;
-  private static final double kTargetDegrees = 1100.0;
-  private static final double kToleranceDeg = 5.0;
+  private final double targetDegrees;
+  private static final double kToleranceDeg = 2.0;
 
-  public SetClimberPositionCommand(ClimberSubsystem climber) {
+  public SetClimberPositionCommand(ClimberSubsystem climber, double targetDegrees) {
     this.climber = climber;
+    this.targetDegrees = targetDegrees;
     addRequirements(climber);
   }
 
   @Override
   public void initialize() {
-    climber.setTargetDegrees(kTargetDegrees);
+    climber.setTargetDegrees(targetDegrees);
   }
 
   @Override
   public boolean isFinished() {
-    return climber.isAtTargetDegrees(kTargetDegrees, kToleranceDeg);
+    return climber.isAtTargetDegrees(targetDegrees, kToleranceDeg);
   }
 
   @Override
