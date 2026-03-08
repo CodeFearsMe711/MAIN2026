@@ -91,8 +91,8 @@ public final class Constants {
     // =========================
     // Shoot-on-the-move lead compensation
     // =========================
-    public static final double kAimFlightTimeSec = 0.35;            // start ~0.30–0.45
-    public static final double kAimMaxLeadDeg = 8.0;                // clamp
-    public static final double kAimLeadScale = 1.0;                 // 1.0 = pure physics, tune 0.6–1.4
+    public static final double kAimFlightTimeSec = 0.55;
+public static final double kAimMaxLeadDeg = 20.0;
+public static final double kAimLeadScale = 2.5;               // 1.0 = pure physics, tune 0.6–1.4
   }
 }

@@ -56,6 +56,7 @@ import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 
 import frc.robot.commands.NamedCommands.*;
+import frc.robot.util.AimAssistMath;
 
 public class RobotContainer {
   private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
@@ -357,116 +358,51 @@ c_driverController.x().whileTrue(
     // =========================
     // AIM ASSIST
     // =========================
-    m_driverController.leftBumper().whileTrue(
-        drivetrain.applyRequest(
-            () -> {
-              double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
-              double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
+m_driverController.leftBumper().whileTrue(
+    drivetrain.applyRequest(
+        () -> {
+          double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
+          double lx = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
 
-              double vx = -ly * MaxSpeed;
-              double vy = -lx * MaxSpeed;
+          double vx = -ly * MaxSpeed;
+          double vy = -lx * MaxSpeed;
+          double omega = 0.0;
 
-              double omega = 0.0;
-              double rangeVRobot = 0.0;
+          var result = m_photonVision.getLatestResult();
+          if (result.hasTargets()) {
+            var bestAllowed =
+                AimAssistMath.findBestAllowedTarget(result.getTargets(), VisionConstants.kAimTagIds);
 
-              var result = m_aimCam.getLatestResult();
-              if (result.hasTargets()) {
-                org.photonvision.targeting.PhotonTrackedTarget bestAllowed = null;
-                double bestAbsYaw = 1e9;
+            if (bestAllowed != null) {
+              double distMeters = AimAssistMath.getDistanceMeters(bestAllowed);
 
-                for (var t2 : result.getTargets()) {
-                  int id = t2.getFiducialId();
+              var robotSpeeds = drivetrain.getRobotRelativeSpeeds();
+              var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, robotSpeeds);
 
-                  boolean allowed = false;
-                  for (int a : VisionConstants.kAimTagIds) {
-                    if (id == a) {
-                      allowed = true;
-                      break;
-                    }
-                  }
-                  if (!allowed) continue;
+              if (yawOpt.isPresent()) {
+                double yawErrRad = yawOpt.get();
 
-                  double absYaw = Math.abs(t2.getYaw());
-                  if (absYaw < bestAbsYaw) {
-                    bestAbsYaw = absYaw;
-                    bestAllowed = t2;
-                  }
-                }
-
-                if (bestAllowed != null) {
-                  double distMeters = bestAllowed.getBestCameraToTarget().getTranslation().getNorm();
-
-                  var pose = drivetrain.getState().Pose;
-                  double dx = 0.0 - pose.getX();
-                  double dy = 0.0 - pose.getY();
-                  double norm = Math.hypot(dx, dy);
-
-                  double ux;
-                  double uy;
-                  if (norm > 1e-6) {
-                    ux = dx / norm;
-                    uy = dy / norm;
-                  } else {
-                    var heading = pose.getRotation();
-                    ux = heading.getCos();
-                    uy = heading.getSin();
-                  }
-
-                  double vxf = vx;
-                  double vyf = vy;
-
-                  double vLat = (-uy) * vxf + (ux) * vyf;
-
-                  double leadRad = Math.atan2(
-                      (vLat * VisionConstants.kAimFlightTimeSec * VisionConstants.kAimLeadScale),
-                      Math.max(distMeters, 0.25));
-
-                  double leadDeg = Math.toDegrees(leadRad);
-                  leadDeg = edu.wpi.first.math.MathUtil.clamp(
-                      leadDeg,
-                      -VisionConstants.kAimMaxLeadDeg,
-                      VisionConstants.kAimMaxLeadDeg);
-
-                  double correctedYawDeg =
-                      bestAllowed.getYaw() + VisionConstants.kAimYawOffsetDeg - leadDeg;
-                  double yawErrRad = Math.toRadians(correctedYawDeg);
-
-                  double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-                  omega = clamp(cmd, -VisionConstants.kAimMaxOmegaRadPerSec, VisionConstants.kAimMaxOmegaRadPerSec);
-
-                  double distErr = distMeters - VisionConstants.kAimTargetDistanceMeters;
-
-                  if (Math.abs(distErr) < VisionConstants.kAimRangeDeadbandMeters) {
-                    rangeVRobot = 0.0;
-                    m_rangePid.reset();
-                  } else {
-                    double rangeCmd = m_rangePid.calculate(distMeters, VisionConstants.kAimTargetDistanceMeters);
-                    rangeVRobot = -rangeCmd;
-
-                    rangeVRobot = clamp(
-                        rangeVRobot,
-                        -VisionConstants.kAimMaxRangeSpeedMps,
-                        VisionConstants.kAimMaxRangeSpeedMps);
-                  }
-                } else {
-                  m_aimPid.reset();
-                  m_rangePid.reset();
-                }
-              } else {
-                m_aimPid.reset();
-                m_rangePid.reset();
+                double cmd = m_aimPid.calculate(yawErrRad, 0.0);
+                omega =
+                    clamp(
+                        cmd,
+                        -VisionConstants.kAimMaxOmegaRadPerSec,
+                        VisionConstants.kAimMaxOmegaRadPerSec);
               }
 
-              if (Math.abs(rangeVRobot) > 1e-6) {
-                var heading = drivetrain.getState().Pose.getRotation();
-                vx += rangeVRobot * heading.getCos();
-                vy += rangeVRobot * heading.getSin();
-              }
+              double shooterRps = frc.robot.util.ShooterMath.distanceMetersToShooterRpsClamped(distMeters);
 
-              return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
-            }));
-  }
+              m_shooterSubsystem.setTargetRps(shooterRps);
+            } else {
+              m_aimPid.reset();
+            }
+          } else {
+            m_aimPid.reset();
+          }
 
+          return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+        }));
+      }
   public void updateVisionFusion() {
     Pose2d currentPose = drivetrain.getState().Pose;
 

@@ -172,4 +172,8 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     }
     return sum / targets.size();
   }
+  public org.photonvision.targeting.PhotonPipelineResult getLatestResult() {
+  return camera.getLatestResult();
+}
+
 }
