@@ -57,15 +57,11 @@ public final class Constants {
     public static final int[] kAimTagIds = { 10, 26, 21, 18, 5, 2}; 
 
     // PID gains for turning to face the tag using yaw error
-    public static final double kAimKp = 5;
+    public static final double kAimKp = 3;
     public static final double kAimKi = 0.0;
     public static final double kAimKd = 0.25;
 
-    // Clamp rotational command (rad/s)
-    public static final double kAimMaxOmegaRadPerSec = Units.degreesToRadians(360.0);
-
-    // Deadband for small yaw errors
-    public static final double kAimMinErrorRad = Units.degreesToRadians(1.5);
+    
 
     // Aiming-only yaw trim (deg). + means pretend target is more to the right.
     public static final double kAimYawOffsetDeg = -10.0;
@@ -91,8 +87,11 @@ public final class Constants {
     // =========================
     // Shoot-on-the-move lead compensation
     // =========================
-    public static final double kAimFlightTimeSec = 0.55;
-public static final double kAimMaxLeadDeg = 20.0;
-public static final double kAimLeadScale = 2.5;               // 1.0 = pure physics, tune 0.6–1.4
-  }
+ public static final double kAimFlightTimeSec = 0.30;
+public static final double kAimLeadScale = 1.2;
+public static final double kAimMaxLeadDeg = 10.0;
+
+public static final double kAimMaxOmegaRadPerSec = 2.0;
+public static final double kAimMinErrorRad = Math.toRadians(1.5);
+}
 }

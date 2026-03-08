@@ -105,4 +105,8 @@ public class ShooterSubsystem extends SubsystemBase {
     // Send the (possibly ramped) setpoint to the motor controller
     motor.setControl(velocityReq.withVelocity(commandedRPS));
   }
+  public void stopAndClearTarget() {
+  setTargetRPS(0.0);
+  stop();
+}
 }

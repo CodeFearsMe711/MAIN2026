@@ -2,26 +2,31 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants.VisionConstants;
 import frc.robot.SWERVE.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
+import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.util.AimAssistMath;
+import frc.robot.util.ShooterMath;
 
 public class AimHubTagOverride extends Command {
   private final CommandSwerveDrivetrain drivetrain;
   private final PhotonVisionSubsytem vision;
+  private final ShooterSubsystem shooter;
   private final PIDController pid;
+  private double lastOmega = 0.0;
 
   public AimHubTagOverride(
       CommandSwerveDrivetrain drivetrain,
       PhotonVisionSubsytem vision,
+      ShooterSubsystem shooter,
       PIDController pid) {
     this.drivetrain = drivetrain;
     this.vision = vision;
+    this.shooter = shooter;
     this.pid = pid;
-
-    // Do NOT addRequirements(drivetrain) or it will fight PathPlanner
   }
 
   private static double clamp(double x, double lo, double hi) {
@@ -31,25 +36,41 @@ public class AimHubTagOverride extends Command {
   @Override
   public void initialize() {
     pid.reset();
+    lastOmega = 0.0;
   }
 
   @Override
   public void execute() {
     var result = vision.getLatestResult();
+
     if (!result.hasTargets()) {
       drivetrain.clearOmegaOverride();
       pid.reset();
+      lastOmega = 0.0;
       return;
     }
 
     var bestAllowed =
-        AimAssistMath.findBestAllowedTarget(result.getTargets(), VisionConstants.kAimTagIds);
+        AimAssistMath.findBestAllowedTarget(
+            result.getTargets(),
+            VisionConstants.kAimTagIds);
 
     if (bestAllowed == null) {
       drivetrain.clearOmegaOverride();
       pid.reset();
+      lastOmega = 0.0;
       return;
     }
+
+    double distance = AimAssistMath.getDistanceMeters(bestAllowed);
+double shooterSpeed = ShooterMath.distanceMetersToShooterRps(distance);
+
+SmartDashboard.putNumber("AutoAim/DistanceMeters", distance);
+SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterSpeed);
+
+shooter.setTargetRPS(shooterSpeed);
+
+    SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterSpeed);
 
     ChassisSpeeds speeds = drivetrain.getRobotRelativeSpeeds();
     var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, speeds);
@@ -57,22 +78,34 @@ public class AimHubTagOverride extends Command {
     if (yawOpt.isEmpty()) {
       drivetrain.clearOmegaOverride();
       pid.reset();
+      lastOmega = 0.0;
       return;
     }
 
     double yawErrRad = yawOpt.get();
+    double omega;
 
     if (Math.abs(yawErrRad) < VisionConstants.kAimMinErrorRad) {
-      drivetrain.setOmegaOverride(0.0);
-      return;
+      omega = 0.0;
+      pid.reset();
+    } else {
+      double cmd = pid.calculate(yawErrRad, 0.0);
+
+      double unclampedOmega =
+          clamp(
+              cmd,
+              -VisionConstants.kAimMaxOmegaRadPerSec,
+              VisionConstants.kAimMaxOmegaRadPerSec);
+
+      omega = 0.75 * lastOmega + 0.25 * unclampedOmega;
     }
 
-    double cmd = pid.calculate(yawErrRad, 0.0);
-    double omega =
-        clamp(
-            cmd,
-            -VisionConstants.kAimMaxOmegaRadPerSec,
-            VisionConstants.kAimMaxOmegaRadPerSec);
+    lastOmega = omega;
+
+    SmartDashboard.putNumber(
+        "AutoAim/YawErrDeg",
+        edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRad));
+    SmartDashboard.putNumber("AutoAim/OmegaCmd", omega);
 
     drivetrain.setOmegaOverride(omega);
   }
@@ -81,6 +114,8 @@ public class AimHubTagOverride extends Command {
   public void end(boolean interrupted) {
     drivetrain.clearOmegaOverride();
     pid.reset();
+    lastOmega = 0.0;
+    shooter.stopAndClearTarget();
   }
 
   @Override

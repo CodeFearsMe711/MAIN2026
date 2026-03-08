@@ -57,6 +57,8 @@ import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 
 import frc.robot.commands.NamedCommands.*;
 import frc.robot.util.AimAssistMath;
+import frc.robot.util.ShooterMath;
+import frc.robot.commands.UpdateVisionShooterSpeed;
 
 public class RobotContainer {
   private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
@@ -102,6 +104,7 @@ public class RobotContainer {
 
   // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
+  private double m_lastAimOmega = 0.0;
 
   private final org.photonvision.PhotonCamera m_aimCam =
       new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
@@ -176,7 +179,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
     NamedCommands.registerCommand("agitater", new NamedAgitator(m_agitatorsubsystem));
     NamedCommands.registerCommand("intake", new NamedIntake(m_intakeSubsystem));
-    NamedCommands.registerCommand("Aim Hub Tag Override", new AimHubTagOverride(drivetrain, m_photonVision, m_aimPid));
+    NamedCommands.registerCommand("Aim Hub Tag Override", new AimHubTagOverride(
+    drivetrain,
+    m_photonVision,
+    m_shootersubsystem,
+    m_aimPid));
     NamedCommands.registerCommand(
         "IntakeArmUp",
         new IntakeArmCommand(
@@ -369,30 +376,35 @@ m_driverController.leftBumper().whileTrue(
           double omega = 0.0;
 
           var result = m_photonVision.getLatestResult();
+
           if (result.hasTargets()) {
             var bestAllowed =
-                AimAssistMath.findBestAllowedTarget(result.getTargets(), VisionConstants.kAimTagIds);
+                AimAssistMath.findBestAllowedTarget(
+                    result.getTargets(),
+                    VisionConstants.kAimTagIds);
 
             if (bestAllowed != null) {
-              double distMeters = AimAssistMath.getDistanceMeters(bestAllowed);
-
               var robotSpeeds = drivetrain.getRobotRelativeSpeeds();
               var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, robotSpeeds);
 
               if (yawOpt.isPresent()) {
                 double yawErrRad = yawOpt.get();
 
-                double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-                omega =
-                    clamp(
-                        cmd,
-                        -VisionConstants.kAimMaxOmegaRadPerSec,
-                        VisionConstants.kAimMaxOmegaRadPerSec);
+                if (Math.abs(yawErrRad) < VisionConstants.kAimMinErrorRad) {
+                  omega = 0.0;
+                  m_aimPid.reset();
+                } else {
+                  double cmd = m_aimPid.calculate(yawErrRad, 0.0);
+
+                  omega =
+                      clamp(
+                          cmd,
+                          -VisionConstants.kAimMaxOmegaRadPerSec,
+                          VisionConstants.kAimMaxOmegaRadPerSec);
+                }
+              } else {
+                m_aimPid.reset();
               }
-
-              double shooterRps = frc.robot.util.ShooterMath.distanceMetersToShooterRpsClamped(distMeters);
-
-              m_shooterSubsystem.setTargetRps(shooterRps);
             } else {
               m_aimPid.reset();
             }
@@ -402,7 +414,22 @@ m_driverController.leftBumper().whileTrue(
 
           return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
         }));
-      }
+
+m_driverController.leftBumper().whileTrue(
+    new UpdateVisionShooterSpeed(
+        m_photonVision,
+        m_shootersubsystem));
+
+
+        m_driverController.leftBumper().onFalse(
+    Commands.runOnce(
+        () -> {
+          m_aimPid.reset();
+          m_shootersubsystem.stop();
+        },
+        m_shootersubsystem));
+
+  }
   public void updateVisionFusion() {
     Pose2d currentPose = drivetrain.getState().Pose;
 
