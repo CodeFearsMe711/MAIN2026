@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.commands.Intake.IntakeArmEnableDropCommand;
 
 import frc.robot.subsystems.LEDS.ConnectorXLeds;
 
@@ -95,11 +96,14 @@ public void robotPeriodic() {
 }
 
   @Override
-  public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().cancelAll();
-    }
+public void teleopInit() {
+  if (m_autonomousCommand != null) {
+    m_autonomousCommand.cancel();
+    m_autonomousCommand = null;
   }
+
+  m_robotContainer.scheduleTeleopArmDrop();
+}
 
   @Override
 public void autonomousInit() {

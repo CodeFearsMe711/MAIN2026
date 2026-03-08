@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.130358974358976,
-        "y": 7.407179487179487
+        "x": 3.869489916963227,
+        "y": 7.483321470937129
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.642025641025643,
-        "y": 7.581602564102564
+        "x": 5.381156583629894,
+        "y": 7.657744547860206
       },
       "isLocked": false,
       "linkedName": "13.4"
@@ -53,7 +53,7 @@
   "folder": "Double Left Trench",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -82.50414236027017
+    "rotation": -74.8459319496873
   },
   "useDefaultConstraints": true
 }

@@ -142,6 +142,9 @@ public class RobotContainer {
   public CommandSwerveDrivetrain getDrivetrain() {
     return drivetrain;
   }
+  public void scheduleTeleopArmDrop() {
+  getEnableArmDropCommand().schedule();
+}
 
   private void configurePathPlanner() {
     try {
@@ -191,7 +194,7 @@ public class RobotContainer {
 
   NamedCommands.registerCommand(
       "ClimberDown",
-      new SetClimberPositionCommand(m_ClimberSubsystem, 1300)
+      new SetClimberPositionCommand(m_ClimberSubsystem, 1100)
   );
 }
 
@@ -217,7 +220,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    new Trigger(DriverStation::isTeleopEnabled).onTrue(getEnableArmDropCommand());
+   
 
     m_driverController.povDown().onTrue(
         Commands.runOnce(
@@ -309,23 +312,31 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
 
     m_intakeArmSubsystem.setDefaultCommand(
-        Commands.run(
-            () -> {
-              double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
-              double upDeg = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
+    Commands.run(
+        () -> {
+          if (!DriverStation.isTeleopEnabled()) {
+            m_intakeArmSubsystem.holdCurrentPosition();
+            return;
+          }
 
-              double t = m_driverController.getLeftTriggerAxis();
-              if (t < 0.05) {
-                m_intakeArmSubsystem.setGoalDegrees(downDeg);
-                return;
-              }
+          double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
+          double upDeg = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
 
-              if (t > 1.0) t = 1.0;
+          double t = m_driverController.getLeftTriggerAxis();
 
-              double targetDeg = downDeg + (upDeg - downDeg) * t;
-              m_intakeArmSubsystem.setGoalDegrees(targetDeg);
-            },
-            m_intakeArmSubsystem));
+          if (t < 0.05) {
+            m_intakeArmSubsystem.setGoalDegrees(downDeg);
+            return;
+          }
+
+          if (t > 1.0) {
+            t = 1.0;
+          }
+
+          double targetDeg = downDeg + (upDeg - downDeg) * t;
+          m_intakeArmSubsystem.setGoalDegrees(targetDeg);
+        },
+        m_intakeArmSubsystem));
 
     // =========================
     // CLIMBER
@@ -503,69 +514,59 @@ c_driverController.x().whileTrue(
   }
 
   public Command getEnableArmDropCommand() {
-    return Commands.sequence(
-            Commands.runOnce(
-                () -> {
-                  double enableCruise =
-                      SmartDashboard.getNumber(
-                          "IntakeArm/EnableCruiseRps",
-                          IntakeArmConstants.kEnableCruiseRps_Arm);
+  return Commands.sequence(
+          Commands.runOnce(
+              () -> {
+                double enableCruise =
+                    SmartDashboard.getNumber(
+                        "IntakeArm/EnableCruiseRps",
+                        IntakeArmConstants.kEnableCruiseRps_Arm);
 
-                  double enableAccel =
-                      SmartDashboard.getNumber(
-                          "IntakeArm/EnableAccelRps2",
-                          IntakeArmConstants.kEnableAccelRps2_Arm);
+                double enableAccel =
+                    SmartDashboard.getNumber(
+                        "IntakeArm/EnableAccelRps2",
+                        IntakeArmConstants.kEnableAccelRps2_Arm);
 
-                  m_intakeArmSubsystem.disableManualControl();
-                  m_intakeArmSubsystem.setMotionMagicConstraintsArm(enableCruise, enableAccel);
-                },
-                m_intakeArmSubsystem),
-            Commands.waitUntil(
-                    () -> {
-                      double downDeg =
-                          SmartDashboard.getNumber(
-                              "IntakeArm/DownDeg",
-                              IntakeArmConstants.kPosDegA);
+                m_intakeArmSubsystem.disableManualControl();
+                m_intakeArmSubsystem.setMotionMagicConstraintsArm(enableCruise, enableAccel);
 
-                      double tolDeg =
-                          SmartDashboard.getNumber(
-                              "IntakeArm/CompleteTolDeg",
-                              4.0);
+                double downDeg =
+                    SmartDashboard.getNumber(
+                        "IntakeArm/DownDeg",
+                        IntakeArmConstants.kPosDegA);
 
-                      double trigger = m_driverController.getLeftTriggerAxis();
+                m_intakeArmSubsystem.setGoalDegrees(downDeg);
+              },
+              m_intakeArmSubsystem),
+          Commands.waitUntil(
+                  () -> {
+                    double downDeg =
+                        SmartDashboard.getNumber(
+                            "IntakeArm/DownDeg",
+                            IntakeArmConstants.kPosDegA);
 
-                      if (trigger > 0.05) {
-                        return true;
-                      }
+                    double tolDeg =
+                        SmartDashboard.getNumber(
+                            "IntakeArm/CompleteTolDeg",
+                            4.0);
 
-                      return m_intakeArmSubsystem.atGoalRangeDeg(downDeg, tolDeg);
-                    })
-                .withTimeout(1.75),
-            Commands.runOnce(
-                () -> {
-                  double teleopCruise =
-                      SmartDashboard.getNumber(
-                          "IntakeArm/TeleopCruiseRps",
-                          IntakeArmConstants.kCruiseRps_Arm);
+                    return m_intakeArmSubsystem.atGoalRangeDeg(downDeg, tolDeg);
+                  })
+              .withTimeout(1.75),
+          Commands.runOnce(
+              () -> {
+                double teleopCruise =
+                    SmartDashboard.getNumber(
+                        "IntakeArm/TeleopCruiseRps",
+                        IntakeArmConstants.kCruiseRps_Arm);
 
-                  double teleopAccel =
-                      SmartDashboard.getNumber(
-                          "IntakeArm/TeleopAccelRps2",
-                          IntakeArmConstants.kAccelRps2_Arm);
+                double teleopAccel =
+                    SmartDashboard.getNumber(
+                        "IntakeArm/TeleopAccelRps2",
+                        IntakeArmConstants.kAccelRps2_Arm);
 
-                  m_intakeArmSubsystem.setMotionMagicConstraintsArm(teleopCruise, teleopAccel);
-                },
-                m_intakeArmSubsystem))
-        .beforeStarting(
-            () -> {
-              SmartDashboard.putNumber("IntakeArm/CompleteTolDeg", 4.0);
-
-              double downDeg =
-                  SmartDashboard.getNumber(
-                      "IntakeArm/DownDeg",
-                      IntakeArmConstants.kPosDegA);
-
-              m_intakeArmSubsystem.setGoalDegrees(downDeg);
-            });
-  }
+                m_intakeArmSubsystem.setMotionMagicConstraintsArm(teleopCruise, teleopAccel);
+              },
+              m_intakeArmSubsystem));
+}
 }

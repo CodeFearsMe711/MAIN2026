@@ -1,6 +1,7 @@
 package frc.robot.commands.Intake;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.IntakeArmConstants;
 import frc.robot.subsystems.Intake.IntakeArmSubsystem;
 
 public class IntakeArmCommand extends Command {
@@ -18,5 +19,18 @@ public class IntakeArmCommand extends Command {
     arm.setGoalDegrees(targetDeg);
   }
 
+  @Override
+  public void execute() {
+    arm.setGoalDegrees(targetDeg);
+  }
 
+  @Override
+  public boolean isFinished() {
+    return arm.atGoalRangeDeg(targetDeg, IntakeArmConstants.kToleranceDeg);
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    arm.holdCurrentPosition();
+  }
 }
