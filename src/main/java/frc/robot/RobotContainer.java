@@ -44,6 +44,7 @@ import frc.robot.commands.Intake.IntakeArmCommand;
 import frc.robot.commands.Climber.ManualClimberCommand;
 import frc.robot.commands.AimHubTagOverride;
 import frc.robot.commands.Climber.SetClimberPositionCommand;
+import frc.robot.commands.UpdateVisionShooterSpeed;
 
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
@@ -57,8 +58,6 @@ import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 
 import frc.robot.commands.NamedCommands.*;
 import frc.robot.util.AimAssistMath;
-import frc.robot.util.ShooterMath;
-import frc.robot.commands.UpdateVisionShooterSpeed;
 
 public class RobotContainer {
   private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
@@ -104,13 +103,14 @@ public class RobotContainer {
 
   // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
-  private double m_lastAimOmega = 0.0;
 
+  @SuppressWarnings("unused")
   private final org.photonvision.PhotonCamera m_aimCam =
       new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
 
   private final edu.wpi.first.math.controller.PIDController m_aimPid =
       new edu.wpi.first.math.controller.PIDController(6.0, 0.0, 0);
+  @SuppressWarnings("unused")
   private final edu.wpi.first.math.controller.PIDController m_rangePid =
       new edu.wpi.first.math.controller.PIDController(
           VisionConstants.kAimRangeKp,
@@ -146,9 +146,10 @@ public class RobotContainer {
   public CommandSwerveDrivetrain getDrivetrain() {
     return drivetrain;
   }
+
   public void scheduleTeleopArmDrop() {
-  getEnableArmDropCommand().schedule();
-}
+    getEnableArmDropCommand().schedule();
+  }
 
   private void configurePathPlanner() {
     try {
@@ -169,8 +170,9 @@ public class RobotContainer {
             new PIDConstants(5.0, 0.0, 0.0),
             new PIDConstants(5.0, 0.0, 0.0)),
         m_robotConfig,
-        () -> DriverStation.getAlliance().isPresent()
-            && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
+        () ->
+            DriverStation.getAlliance().isPresent()
+                && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
         drivetrain);
   }
 
@@ -179,11 +181,13 @@ public class RobotContainer {
     NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
     NamedCommands.registerCommand("agitater", new NamedAgitator(m_agitatorsubsystem));
     NamedCommands.registerCommand("intake", new NamedIntake(m_intakeSubsystem));
-    NamedCommands.registerCommand("Aim Hub Tag Override", new AimHubTagOverride(
-    drivetrain,
-    m_photonVision,
-    m_shootersubsystem,
-    m_aimPid));
+    NamedCommands.registerCommand(
+        "Aim Hub Tag Override",
+        new AimHubTagOverride(
+            drivetrain,
+            m_photonVision,
+            m_shootersubsystem,
+            m_aimPid));
     NamedCommands.registerCommand(
         "IntakeArmUp",
         new IntakeArmCommand(
@@ -194,17 +198,15 @@ public class RobotContainer {
         new IntakeArmCommand(
             m_intakeArmSubsystem,
             SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
-  
-  NamedCommands.registerCommand(
-      "ClimberUp",
-      new SetClimberPositionCommand(m_ClimberSubsystem, 1500)
-  );
 
-  NamedCommands.registerCommand(
-      "ClimberDown",
-      new SetClimberPositionCommand(m_ClimberSubsystem, 1100)
-  );
-}
+    NamedCommands.registerCommand(
+        "ClimberUp",
+        new SetClimberPositionCommand(m_ClimberSubsystem, 1500));
+
+    NamedCommands.registerCommand(
+        "ClimberDown",
+        new SetClimberPositionCommand(m_ClimberSubsystem, 1100));
+  }
 
   private static double clamp(double x, double lo, double hi) {
     return Math.max(lo, Math.min(hi, x));
@@ -228,8 +230,6 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-   
-
     m_driverController.povDown().onTrue(
         Commands.runOnce(
             () -> drivetrain.resetPose(new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0))),
@@ -320,31 +320,31 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
 
     m_intakeArmSubsystem.setDefaultCommand(
-    Commands.run(
-        () -> {
-          if (!DriverStation.isTeleopEnabled()) {
-            m_intakeArmSubsystem.holdCurrentPosition();
-            return;
-          }
+        Commands.run(
+            () -> {
+              if (!DriverStation.isTeleopEnabled()) {
+                m_intakeArmSubsystem.holdCurrentPosition();
+                return;
+              }
 
-          double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
-          double upDeg = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
+              double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
+              double upDeg = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
 
-          double t = m_driverController.getLeftTriggerAxis();
+              double t = m_driverController.getLeftTriggerAxis();
 
-          if (t < 0.05) {
-            m_intakeArmSubsystem.setGoalDegrees(downDeg);
-            return;
-          }
+              if (t < 0.05) {
+                m_intakeArmSubsystem.setGoalDegrees(downDeg);
+                return;
+              }
 
-          if (t > 1.0) {
-            t = 1.0;
-          }
+              if (t > 1.0) {
+                t = 1.0;
+              }
 
-          double targetDeg = downDeg + (upDeg - downDeg) * t;
-          m_intakeArmSubsystem.setGoalDegrees(targetDeg);
-        },
-        m_intakeArmSubsystem));
+              double targetDeg = downDeg + (upDeg - downDeg) * t;
+              m_intakeArmSubsystem.setGoalDegrees(targetDeg);
+            },
+            m_intakeArmSubsystem));
 
     // =========================
     // CLIMBER
@@ -353,19 +353,19 @@ public class RobotContainer {
     // release = hold current position
     // =========================
     c_driverController.y().whileTrue(
-    new ManualClimberCommand(
-        m_ClimberSubsystem,
-        ManualClimberCommand.ClimberDirection.UP));
+        new ManualClimberCommand(
+            m_ClimberSubsystem,
+            ManualClimberCommand.ClimberDirection.UP));
 
-c_driverController.x().whileTrue(
-    new ManualClimberCommand(
-        m_ClimberSubsystem,
-        ManualClimberCommand.ClimberDirection.DOWN));
+    c_driverController.x().whileTrue(
+        new ManualClimberCommand(
+            m_ClimberSubsystem,
+            ManualClimberCommand.ClimberDirection.DOWN));
 
     // =========================
     // AIM ASSIST
     // =========================
-m_driverController.leftBumper().whileTrue(
+   m_driverController.leftBumper().whileTrue(
     drivetrain.applyRequest(
         () -> {
           double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
@@ -418,10 +418,10 @@ m_driverController.leftBumper().whileTrue(
 m_driverController.leftBumper().whileTrue(
     new UpdateVisionShooterSpeed(
         m_photonVision,
-        m_shootersubsystem));
+        m_shootersubsystem,
+        drivetrain));
 
-
-        m_driverController.leftBumper().onFalse(
+m_driverController.leftBumper().onFalse(
     Commands.runOnce(
         () -> {
           m_aimPid.reset();
@@ -477,59 +477,59 @@ m_driverController.leftBumper().whileTrue(
   }
 
   public Command getEnableArmDropCommand() {
-  return Commands.sequence(
-          Commands.runOnce(
-              () -> {
-                double enableCruise =
-                    SmartDashboard.getNumber(
-                        "IntakeArm/EnableCruiseRps",
-                        IntakeArmConstants.kEnableCruiseRps_Arm);
+    return Commands.sequence(
+        Commands.runOnce(
+            () -> {
+              double enableCruise =
+                  SmartDashboard.getNumber(
+                      "IntakeArm/EnableCruiseRps",
+                      IntakeArmConstants.kEnableCruiseRps_Arm);
 
-                double enableAccel =
-                    SmartDashboard.getNumber(
-                        "IntakeArm/EnableAccelRps2",
-                        IntakeArmConstants.kEnableAccelRps2_Arm);
+              double enableAccel =
+                  SmartDashboard.getNumber(
+                      "IntakeArm/EnableAccelRps2",
+                      IntakeArmConstants.kEnableAccelRps2_Arm);
 
-                m_intakeArmSubsystem.disableManualControl();
-                m_intakeArmSubsystem.setMotionMagicConstraintsArm(enableCruise, enableAccel);
+              m_intakeArmSubsystem.disableManualControl();
+              m_intakeArmSubsystem.setMotionMagicConstraintsArm(enableCruise, enableAccel);
 
-                double downDeg =
-                    SmartDashboard.getNumber(
-                        "IntakeArm/DownDeg",
-                        IntakeArmConstants.kPosDegA);
+              double downDeg =
+                  SmartDashboard.getNumber(
+                      "IntakeArm/DownDeg",
+                      IntakeArmConstants.kPosDegA);
 
-                m_intakeArmSubsystem.setGoalDegrees(downDeg);
-              },
-              m_intakeArmSubsystem),
-          Commands.waitUntil(
-                  () -> {
-                    double downDeg =
-                        SmartDashboard.getNumber(
-                            "IntakeArm/DownDeg",
-                            IntakeArmConstants.kPosDegA);
+              m_intakeArmSubsystem.setGoalDegrees(downDeg);
+            },
+            m_intakeArmSubsystem),
+        Commands.waitUntil(
+                () -> {
+                  double downDeg =
+                      SmartDashboard.getNumber(
+                          "IntakeArm/DownDeg",
+                          IntakeArmConstants.kPosDegA);
 
-                    double tolDeg =
-                        SmartDashboard.getNumber(
-                            "IntakeArm/CompleteTolDeg",
-                            4.0);
+                  double tolDeg =
+                      SmartDashboard.getNumber(
+                          "IntakeArm/CompleteTolDeg",
+                          4.0);
 
-                    return m_intakeArmSubsystem.atGoalRangeDeg(downDeg, tolDeg);
-                  })
-              .withTimeout(1.75),
-          Commands.runOnce(
-              () -> {
-                double teleopCruise =
-                    SmartDashboard.getNumber(
-                        "IntakeArm/TeleopCruiseRps",
-                        IntakeArmConstants.kCruiseRps_Arm);
+                  return m_intakeArmSubsystem.atGoalRangeDeg(downDeg, tolDeg);
+                })
+            .withTimeout(1.75),
+        Commands.runOnce(
+            () -> {
+              double teleopCruise =
+                  SmartDashboard.getNumber(
+                      "IntakeArm/TeleopCruiseRps",
+                      IntakeArmConstants.kCruiseRps_Arm);
 
-                double teleopAccel =
-                    SmartDashboard.getNumber(
-                        "IntakeArm/TeleopAccelRps2",
-                        IntakeArmConstants.kAccelRps2_Arm);
+              double teleopAccel =
+                  SmartDashboard.getNumber(
+                      "IntakeArm/TeleopAccelRps2",
+                      IntakeArmConstants.kAccelRps2_Arm);
 
-                m_intakeArmSubsystem.setMotionMagicConstraintsArm(teleopCruise, teleopAccel);
-              },
-              m_intakeArmSubsystem));
-}
+              m_intakeArmSubsystem.setMotionMagicConstraintsArm(teleopCruise, teleopAccel);
+            },
+            m_intakeArmSubsystem));
+  }
 }

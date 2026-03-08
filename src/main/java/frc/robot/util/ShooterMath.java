@@ -12,12 +12,12 @@ public final class ShooterMath {
   }
 
   public static double distanceMetersToShooterRps(double distance) {
-    if (distance <= 1.5) return 75.0;
-    if (distance <= 2.0) return lerp(distance, 1.5, 75.0, 2.0, 95.0);
-    if (distance <= 2.5) return lerp(distance, 2.0, 95.0, 2.5, 115.0);
-    if (distance <= 3.0) return lerp(distance, 2.5, 115.0, 3.0, 135.0);
-    if (distance <= 3.5) return lerp(distance, 3.0, 135.0, 3.5, 155.0);
-    if (distance <= 4.0) return lerp(distance, 3.5, 155.0, 4.0, 175.0);
-    return 190.0;
+    if (distance <= 1.5) return 55.0;
+    if (distance <= 2.0) return lerp(distance, 1.5, 55.0, 2.0, 75.0);
+    if (distance <= 2.5) return lerp(distance, 2.0, 75.0, 2.5, 95.0);
+    if (distance <= 3.0) return lerp(distance, 2.5, 95.0, 3.0, 115.0);
+    if (distance <= 3.5) return lerp(distance, 3.0, 115.0, 3.5, 135.0);
+    if (distance <= 4.0) return lerp(distance, 3.5, 135.0, 4.0, 155.0);
+    return 170.0;
   }
 }

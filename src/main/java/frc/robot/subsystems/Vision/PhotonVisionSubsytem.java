@@ -1,4 +1,3 @@
-// src/main/java/frc/robot/subsystems/Vision/PhotonVisionSubsytem.java
 package frc.robot.subsystems.Vision;
 
 import java.util.List;
@@ -33,8 +32,6 @@ public class PhotonVisionSubsytem extends SubsystemBase {
   public PhotonVisionSubsytem() {
     camera = new PhotonCamera(VisionConstants.kCameraName);
     fieldLayout = loadFieldLayoutRobust();
-
-    // PhotonLib 2026 constructor: (fieldLayout, robotToCamera)
     poseEstimator = new PhotonPoseEstimator(fieldLayout, VisionConstants.kRobotToCamera);
   }
 
@@ -53,13 +50,13 @@ public class PhotonVisionSubsytem extends SubsystemBase {
       try {
         AprilTagFields f = AprilTagFields.valueOf(name);
         return AprilTagFieldLayout.loadField(f);
-      } catch (Exception ignored) {}
+      } catch (Exception ignored) {
+      }
     }
 
     return AprilTagFieldLayout.loadField(AprilTagFields.values()[0]);
   }
 
-  /** Returns a filtered vision pose estimate (field-relative). */
   public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d referencePose2d) {
 
     DriverStation.getAlliance().ifPresent(alliance -> {
@@ -73,15 +70,12 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     PhotonPipelineResult result = camera.getLatestResult();
     if (!result.hasTargets()) return Optional.empty();
 
-    // Prefer coprocessor multitag (enable in PhotonVision UI)
     Optional<EstimatedRobotPose> est = poseEstimator.estimateCoprocMultiTagPose(result);
 
-    // Stable fallback: closest to current reference pose
     if (est.isEmpty()) {
       est = poseEstimator.estimateClosestToReferencePose(result, new Pose3d(referencePose2d));
     }
 
-    // Last fallback: lowest ambiguity single-tag
     if (est.isEmpty()) {
       est = poseEstimator.estimateLowestAmbiguityPose(result);
     }
@@ -94,7 +88,6 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     return Optional.of(out);
   }
 
-  /** For teleop hold-to-aim: returns yaw error (rad) to the best allowed AprilTag. */
   public Optional<Double> getYawToBestTagRad(int... allowedIds) {
     PhotonPipelineResult result = camera.getLatestResult();
     if (!result.hasTargets()) return Optional.empty();
@@ -106,11 +99,14 @@ public class PhotonVisionSubsytem extends SubsystemBase {
       int id = t.getFiducialId();
       boolean allowed = false;
       for (int a : allowedIds) {
-        if (id == a) { allowed = true; break; }
+        if (id == a) {
+          allowed = true;
+          break;
+        }
       }
       if (!allowed) continue;
 
-      double yawDeg = t.getYaw(); // +deg means target is to the right in PhotonVision
+      double yawDeg = t.getYaw();
       double abs = Math.abs(yawDeg);
 
       if (abs < bestAbsYawDeg) {
@@ -124,7 +120,41 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     return Optional.of(Units.degreesToRadians(correctedYawDeg));
   }
 
-  /** Dynamic measurement uncertainty for Kalman fusion. */
+  public Optional<Double> getBestAllowedTagDistanceMeters(Pose2d robotPose, int... allowedIds) {
+    PhotonPipelineResult result = camera.getLatestResult();
+    if (!result.hasTargets()) return Optional.empty();
+
+    PhotonTrackedTarget best = null;
+    double bestAbsYawDeg = Double.POSITIVE_INFINITY;
+
+    for (PhotonTrackedTarget t : result.getTargets()) {
+      int id = t.getFiducialId();
+
+      boolean allowed = false;
+      for (int a : allowedIds) {
+        if (id == a) {
+          allowed = true;
+          break;
+        }
+      }
+      if (!allowed) continue;
+
+      double absYaw = Math.abs(t.getYaw());
+      if (absYaw < bestAbsYawDeg) {
+        bestAbsYawDeg = absYaw;
+        best = t;
+      }
+    }
+
+    if (best == null) return Optional.empty();
+
+    Optional<Pose3d> tagPoseOpt = fieldLayout.getTagPose(best.getFiducialId());
+    if (tagPoseOpt.isEmpty()) return Optional.empty();
+
+    Pose2d tagPose2d = tagPoseOpt.get().toPose2d();
+    return Optional.of(robotPose.getTranslation().getDistance(tagPose2d.getTranslation()));
+  }
+
   public Matrix<N3, N1> getEstimationStdDevs(EstimatedRobotPose est) {
     int tagCount = est.targetsUsed.size();
 
@@ -172,8 +202,8 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     }
     return sum / targets.size();
   }
-  public org.photonvision.targeting.PhotonPipelineResult getLatestResult() {
-  return camera.getLatestResult();
-}
 
+  public PhotonPipelineResult getLatestResult() {
+    return camera.getLatestResult();
+  }
 }
