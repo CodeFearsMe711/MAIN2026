@@ -1,8 +1,74 @@
 {
   "team": null,
-  "network": { "mode": "USB" },
-  "channels": {},
-  "sequences": [],
+  "network": {
+    "mode": "USB"
+  },
+  "channels": {
+    "1": {
+      "id": "Strip",
+      "length": 300,
+      "brightness": null,
+      "zones": [
+        {
+          "id": "TestZone",
+          "type": "strip",
+          "length": 300,
+          "brightness": 255,
+          "reversed": false
+        }
+      ]
+    }
+  },
+  "sequences": [
+    {
+      "id": "Test3",
+      "steps": [
+        {
+          "animationId": "Comet",
+          "color": {
+            "r": 255,
+            "g": 61,
+            "b": 236
+          },
+          "delay": 20,
+          "reversed": false,
+          "repeat": 20
+        }
+      ]
+    },
+    {
+      "id": "Larson",
+      "steps": [
+        {
+          "animationId": "Larson",
+          "color": {
+            "r": 255,
+            "g": 61,
+            "b": 236
+          },
+          "delay": 20,
+          "reversed": false,
+          "repeat": null
+        }
+      ]
+    },
+    {
+      "id": "Test6",
+      "steps": [
+        {
+          "animationId": "Sparkle",
+          "color": {
+            "r": 84,
+            "g": 248,
+            "b": 205
+          },
+          "delay": 150,
+          "reversed": false,
+          "repeat": 10
+        }
+      ]
+    }
+  ],
   "bitmaps": [],
   "sensors": [],
   "groups": []
