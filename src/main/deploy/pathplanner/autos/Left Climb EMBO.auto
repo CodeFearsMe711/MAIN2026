@@ -41,12 +41,6 @@
                             }
                           },
                           {
-                            "type": "named",
-                            "data": {
-                              "name": "IntakeArmDown"
-                            }
-                          },
-                          {
                             "type": "wait",
                             "data": {
                               "waitTime": 1.5
@@ -56,9 +50,22 @@
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "parallel",
                       "data": {
-                        "pathName": "9.2"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "9.2"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "IntakeArmDown"
+                            }
+                          }
+                        ]
                       }
                     },
                     {

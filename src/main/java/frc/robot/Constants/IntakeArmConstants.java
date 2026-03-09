@@ -14,15 +14,15 @@ public final class IntakeArmConstants {
   public static final double kPosDegB =  0; // UP
 
   // Motion constraints at ARM/OUTPUT (teleop normal)
-  public static final double kCruiseRps_Arm = .7;
-  public static final double kAccelRps2_Arm = .5;
+  public static final double kCruiseRps_Arm = .35;
+  public static final double kAccelRps2_Arm = .25;
 
   // Enable drop constraints (slow, adjustable)
   public static final double kEnableCruiseRps_Arm = .35;
   public static final double kEnableAccelRps2_Arm = .25;
 
   // Tune these
-  public static final double kP = 1;
+  public static final double kP = 3;
   public static final double kI = 0.0;
   public static final double kD = 0.0;
 

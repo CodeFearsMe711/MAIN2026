@@ -42,15 +42,15 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
-                            "data": {
-                              "name": "intake"
-                            }
-                          },
-                          {
                             "type": "path",
                             "data": {
                               "pathName": "14.2"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "intake"
                             }
                           }
                         ]

@@ -35,9 +35,22 @@
                             }
                           },
                           {
-                            "type": "named",
+                            "type": "race",
                             "data": {
-                              "name": "intake"
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "intake"
+                                  }
+                                },
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.45
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
@@ -82,7 +95,7 @@
                                       {
                                         "type": "wait",
                                         "data": {
-                                          "waitTime": 1.0
+                                          "waitTime": 0.2
                                         }
                                       },
                                       {
@@ -117,9 +130,22 @@
                             }
                           },
                           {
-                            "type": "named",
+                            "type": "race",
                             "data": {
-                              "name": "intake"
+                              "commands": [
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "intake"
+                                  }
+                                },
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.86
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
