@@ -20,11 +20,6 @@ public class IntakeArmCommand extends Command {
   }
 
   @Override
-  public void execute() {
-    arm.setGoalDegrees(targetDeg);
-  }
-
-  @Override
   public boolean isFinished() {
     return arm.atGoalRangeDeg(targetDeg, IntakeArmConstants.kToleranceDeg);
   }

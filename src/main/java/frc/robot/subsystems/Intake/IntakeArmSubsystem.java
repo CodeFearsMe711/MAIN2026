@@ -1,121 +1,235 @@
 package frc.robot.subsystems.Intake;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import frc.robot.Constants.IntakeArmConstants;
 
 public class IntakeArmSubsystem extends SubsystemBase {
+  private enum ControlMode {
+    POSITION,
+    MANUAL_VELOCITY
+  }
+
+  private static final double kLoopDtSec = 0.02;
 
   private final TalonFX motor =
       new TalonFX(IntakeArmConstants.kMotorId, IntakeArmConstants.kCanBus);
 
-  private final MotionMagicVoltage mm = new MotionMagicVoltage(0.0);
-  private final VelocityVoltage velocityReq = new VelocityVoltage(0.0);
+  private final PositionVoltage positionRequest = new PositionVoltage(0.0);
+  private final VelocityVoltage velocityRequest = new VelocityVoltage(0.0);
 
-  private double goalMotorRot = 0.0;
+  private final StatusSignal<edu.wpi.first.units.measure.Angle> positionSignal = motor.getPosition();
+  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> velocitySignal = motor.getVelocity();
 
-  private boolean manualControl = false;
-  private double manualArmRps = 0.0;
+  private ControlMode controlMode = ControlMode.POSITION;
 
   private boolean bootZeroDone = false;
 
+  private double desiredGoalDeg = IntakeArmConstants.kPosDegB;
+  private double manualArmRps = 0.0;
+
+  private double maxProfileVelDegPerSec = armRpsToDegPerSec(IntakeArmConstants.kCruiseRps_Arm);
+  private double maxProfileAccelDegPerSec2 = armRpsToDegPerSec(IntakeArmConstants.kAccelRps2_Arm);
+
+  private TrapezoidProfile.Constraints profileConstraints =
+      new TrapezoidProfile.Constraints(maxProfileVelDegPerSec, maxProfileAccelDegPerSec2);
+
+  private TrapezoidProfile.State profiledSetpointDeg =
+      new TrapezoidProfile.State(IntakeArmConstants.kPosDegB, 0.0);
+
+  private double lastPositionCommandMotorRot = Double.NaN;
+  private double lastVelocityCommandMotorRps = Double.NaN;
+  private double lastPublishedDegrees = Double.NaN;
+
   public IntakeArmSubsystem() {
     motor.setNeutralMode(NeutralModeValue.Brake);
+    applyBaseConfig();
 
-    applyConfig(
-        IntakeArmConstants.kP,
-        IntakeArmConstants.kI,
-        IntakeArmConstants.kD,
-        IntakeArmConstants.kCruiseRps_Arm,
-        IntakeArmConstants.kAccelRps2_Arm
-    );
+    BaseStatusSignal.setUpdateFrequencyForAll(50.0, positionSignal, velocitySignal);
+    motor.optimizeBusUtilization();
+
+    BaseStatusSignal.refreshAll(positionSignal, velocitySignal);
+
+    double startDeg = clampDegrees(getDegrees());
+    desiredGoalDeg = startDeg;
+    profiledSetpointDeg = new TrapezoidProfile.State(startDeg, 0.0);
 
     SmartDashboard.putBoolean("IntakeArm/BootZeroDone", false);
-    SmartDashboard.putNumber("Arm Degrees", 0.0);
+    SmartDashboard.putNumber("Arm Degrees", startDeg);
   }
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Arm Degrees", getDegrees());
+    BaseStatusSignal.refreshAll(positionSignal, velocitySignal);
 
-    if (manualControl) {
-      motor.setControl(
-          velocityReq.withVelocity(armRpsToMotorRps(manualArmRps))
-      );
+    double currentDeg = getDegrees();
+
+    if (Double.isNaN(lastPublishedDegrees) || Math.abs(currentDeg - lastPublishedDegrees) >= 0.1) {
+      SmartDashboard.putNumber("Arm Degrees", currentDeg);
+      lastPublishedDegrees = currentDeg;
+    }
+
+    if (controlMode == ControlMode.MANUAL_VELOCITY) {
+      applyManualVelocity();
     } else {
-      motor.setControl(
-          mm.withPosition(goalMotorRot)
-      );
+      applyProfiledPosition();
     }
   }
 
-  private void applyConfig(double kP, double kI, double kD, double cruiseRpsArm, double accelRps2Arm) {
+  private void applyBaseConfig() {
     TalonFXConfiguration cfg = new TalonFXConfiguration();
 
-    cfg.Slot0.kP = kP;
-    cfg.Slot0.kI = kI;
-    cfg.Slot0.kD = kD;
-
-    cfg.MotionMagic.MotionMagicCruiseVelocity = armRpsToMotorRps(cruiseRpsArm);
-    cfg.MotionMagic.MotionMagicAcceleration   = armRps2ToMotorRps2(accelRps2Arm);
+    cfg.Slot0.kP = IntakeArmConstants.kP;
+    cfg.Slot0.kI = IntakeArmConstants.kI;
+    cfg.Slot0.kD = IntakeArmConstants.kD;
 
     motor.getConfigurator().apply(cfg);
   }
 
-  // Call ONCE at boot before commands run
+  private void applyProfiledPosition() {
+    double currentDeg = clampDegrees(getDegrees());
+    double currentDegPerSec = motorRpsToDegPerSec(velocitySignal.getValueAsDouble());
+
+    TrapezoidProfile profile = new TrapezoidProfile(profileConstraints);
+
+    TrapezoidProfile.State measuredState =
+        new TrapezoidProfile.State(currentDeg, currentDegPerSec);
+
+    TrapezoidProfile.State goalState =
+        new TrapezoidProfile.State(clampDegrees(desiredGoalDeg), 0.0);
+
+    double posErrorToMeasured = Math.abs(profiledSetpointDeg.position - currentDeg);
+
+    if (Double.isNaN(profiledSetpointDeg.position) || posErrorToMeasured > 8.0) {
+      profiledSetpointDeg = measuredState;
+    }
+
+    profiledSetpointDeg = profile.calculate(kLoopDtSec, profiledSetpointDeg, goalState);
+
+    double targetMotorRot = degreesToMotorRotations(profiledSetpointDeg.position);
+
+    if (Double.isNaN(lastPositionCommandMotorRot)
+        || Math.abs(targetMotorRot - lastPositionCommandMotorRot) > 1e-4) {
+      motor.setControl(positionRequest.withPosition(targetMotorRot));
+      lastPositionCommandMotorRot = targetMotorRot;
+    }
+  }
+
+  private void applyManualVelocity() {
+    double currentDeg = getDegrees();
+
+    double commandedArmRps = manualArmRps;
+
+    if (currentDeg <= getMinDeg() && commandedArmRps < 0.0) {
+      commandedArmRps = 0.0;
+    }
+    if (currentDeg >= getMaxDeg() && commandedArmRps > 0.0) {
+      commandedArmRps = 0.0;
+    }
+
+    double targetMotorRps = armRpsToMotorRps(commandedArmRps);
+
+    if (Double.isNaN(lastVelocityCommandMotorRps)
+        || Math.abs(targetMotorRps - lastVelocityCommandMotorRps) > 1e-4) {
+      motor.setControl(velocityRequest.withVelocity(targetMotorRps));
+      lastVelocityCommandMotorRps = targetMotorRps;
+    }
+  }
+
   public void zeroArmPositionOnBoot() {
-    if (bootZeroDone) return;
-    motor.setPosition(0.0);
+    if (bootZeroDone) {
+      return;
+    }
+
+    motor.setPosition(degreesToMotorRotations(IntakeArmConstants.kPosDegB));
     bootZeroDone = true;
+
+    BaseStatusSignal.refreshAll(positionSignal, velocitySignal);
+
+    double currentDeg = clampDegrees(getDegrees());
+    desiredGoalDeg = currentDeg;
+    profiledSetpointDeg = new TrapezoidProfile.State(currentDeg, 0.0);
+
+    invalidateCachedCommands();
+
     SmartDashboard.putBoolean("IntakeArm/BootZeroDone", true);
   }
 
   public boolean atGoalRangeDeg(double goalDeg, double tolDeg) {
-    return Math.abs(getDegrees() - goalDeg) <= tolDeg;
+    return Math.abs(getDegrees() - clampDegrees(goalDeg)) <= Math.abs(tolDeg);
   }
 
   public void enableManualArmRPS(double armRps) {
     manualArmRps = armRps;
-    manualControl = true;
+    controlMode = ControlMode.MANUAL_VELOCITY;
+    lastVelocityCommandMotorRps = Double.NaN;
   }
 
   public void disableManualControl() {
-    manualControl = false;
+    controlMode = ControlMode.POSITION;
+
+    double currentDeg = clampDegrees(getDegrees());
+    profiledSetpointDeg =
+        new TrapezoidProfile.State(
+            currentDeg,
+            motorRpsToDegPerSec(velocitySignal.getValueAsDouble()));
+
+    lastPositionCommandMotorRot = Double.NaN;
   }
 
   public void setGoalDegrees(double armDeg) {
-    manualControl = false;
-    goalMotorRot = degreesToMotorRotations(armDeg);
+    desiredGoalDeg = clampDegrees(armDeg);
+    controlMode = ControlMode.POSITION;
   }
 
   public void holdCurrentPosition() {
-    manualControl = false;
-    goalMotorRot = getMotorRotations();
+    double currentDeg = clampDegrees(getDegrees());
+    desiredGoalDeg = currentDeg;
+    controlMode = ControlMode.POSITION;
+    profiledSetpointDeg = new TrapezoidProfile.State(currentDeg, 0.0);
+    lastPositionCommandMotorRot = Double.NaN;
   }
 
   public double getDegrees() {
-    return motorRotationsToDegrees(getMotorRotations());
+    return motorRotationsToDegrees(positionSignal.getValueAsDouble());
   }
 
   public void setMotionMagicConstraintsArm(double cruiseRpsArm, double accelRps2Arm) {
-    TalonFXConfiguration cfg = new TalonFXConfiguration();
-    motor.getConfigurator().refresh(cfg);
+    double safeCruise = Math.max(0.001, cruiseRpsArm);
+    double safeAccel = Math.max(0.001, accelRps2Arm);
 
-    cfg.MotionMagic.MotionMagicCruiseVelocity = armRpsToMotorRps(cruiseRpsArm);
-    cfg.MotionMagic.MotionMagicAcceleration   = armRps2ToMotorRps2(accelRps2Arm);
+    maxProfileVelDegPerSec = armRpsToDegPerSec(safeCruise);
+    maxProfileAccelDegPerSec2 = armRpsToDegPerSec2(safeAccel);
 
-    motor.getConfigurator().apply(cfg);
+    profileConstraints =
+        new TrapezoidProfile.Constraints(maxProfileVelDegPerSec, maxProfileAccelDegPerSec2);
   }
 
-  private double getMotorRotations() {
-    return motor.getPosition().getValueAsDouble();
+  private void invalidateCachedCommands() {
+    lastPositionCommandMotorRot = Double.NaN;
+    lastVelocityCommandMotorRps = Double.NaN;
+  }
+
+  private double getMinDeg() {
+    return Math.min(IntakeArmConstants.kPosDegA, IntakeArmConstants.kPosDegB);
+  }
+
+  private double getMaxDeg() {
+    return Math.max(IntakeArmConstants.kPosDegA, IntakeArmConstants.kPosDegB);
+  }
+
+  private double clampDegrees(double armDeg) {
+    return MathUtil.clamp(armDeg, getMinDeg(), getMaxDeg());
   }
 
   private static double degreesToMotorRotations(double armDeg) {
@@ -132,7 +246,16 @@ public class IntakeArmSubsystem extends SubsystemBase {
     return armRps * IntakeArmConstants.kMotorRotationsPerArmRotation;
   }
 
-  private static double armRps2ToMotorRps2(double armRps2) {
-    return armRps2 * IntakeArmConstants.kMotorRotationsPerArmRotation;
+  private static double armRpsToDegPerSec(double armRps) {
+    return armRps * 360.0;
+  }
+
+  private static double armRpsToDegPerSec2(double armRps2) {
+    return armRps2 * 360.0;
+  }
+
+  private static double motorRpsToDegPerSec(double motorRps) {
+    double armRps = motorRps / IntakeArmConstants.kMotorRotationsPerArmRotation;
+    return armRps * 360.0;
   }
 }
