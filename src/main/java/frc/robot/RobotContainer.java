@@ -302,13 +302,14 @@ public class RobotContainer {
             m_intakeSubsystem));
 
     // Shooter presets
-    SmartDashboard.putNumber("Shooter/LowPresetRPS", 75);
+    SmartDashboard.putNumber("Shooter/LowPresetRPS", 35);
+
     m_driverController.a().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setLowPreset(true),
             () -> m_shootersubsystem.setLowPreset(false)));
 
-    SmartDashboard.putNumber("Shooter/FastTargetRPS", 125);
+SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
     m_driverController.y().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setFastPreset(true),

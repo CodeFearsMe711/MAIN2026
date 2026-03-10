@@ -25,7 +25,7 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
     TalonFXConfiguration cfg = new TalonFXConfiguration();
 
-    cfg.Slot0.kP = 0.05;
+    cfg.Slot0.kP = 0.18;
     cfg.Slot0.kI = 0.0;
     cfg.Slot0.kD = 0.0;
     cfg.Slot0.kV = 0.12;
@@ -62,60 +62,46 @@ public class ShooterSubsystem extends SubsystemBase {
   public void clearVisionTarget() {
   }
 
-  private double calculateTarget() {
+  public void stop() {
+    manualLow = false;
+    manualFast = false;
+    visionEnabled = false;
+    visionRPS = 0.0;
+    visionHoldUntilSec = -1.0;
+  }
+
+  public void stopAndClearTarget() {
+    stop();
+  }
+
+  private double getTargetMotorRPS() {
+    double target = 0.0;
     double now = Timer.getFPGATimestamp();
 
     if (visionEnabled && now <= visionHoldUntilSec) {
-      return visionRPS;
+      target = visionRPS;
+    } else if (manualFast) {
+      target = SmartDashboard.getNumber("Shooter/FastTargetRPS", 70.0);
+    } else if (manualLow) {
+      target = SmartDashboard.getNumber("Shooter/LowPresetRPS", 35.0);
     }
 
-    if (manualFast) {
-      return SmartDashboard.getNumber("Shooter/FastTargetRPS", 125.0);
-    }
-
-    if (manualLow) {
-      return SmartDashboard.getNumber("Shooter/TargetRPS", 75.0);
-    }
-
-    return 0.0;
+    return target;
   }
 
   public double getMotorRPS() {
     return motor.getVelocity().getValueAsDouble();
   }
 
-  
+  @Override
+  public void periodic() {
+    double targetMotorRPS = getTargetMotorRPS();
 
-  public void stop() {
-  manualLow = false;
-  manualFast = false;
-  visionEnabled = false;
-  visionRPS = 0.0;
-  visionHoldUntilSec = -1.0;
-}
+    motor.setControl(velocityReq.withVelocity(targetMotorRPS));
 
-public void stopAndClearTarget() {
-  stop();
-}
-
-
- @Override
-public void periodic() {
-  double target = 0.0;
-
-  if (visionEnabled) {
-    target = visionRPS;
-  } else if (manualFast) {
-    target = SmartDashboard.getNumber("Shooter/FastTargetRPS", 125.0);
-  } else if (manualLow) {
-    target = SmartDashboard.getNumber("Shooter/LowPresetRPS", 75.0);
+    SmartDashboard.putBoolean("Shooter/VisionEnabled", visionEnabled);
+    SmartDashboard.putNumber("Shooter/VisionRPS", visionRPS);
+    SmartDashboard.putNumber("Shooter/AppliedTargetRPS", targetMotorRPS);
+    SmartDashboard.putNumber("Shooter/MotorRPS", getMotorRPS());
   }
-
-  motor.setControl(velocityReq.withVelocity(target));
-
-  SmartDashboard.putBoolean("Shooter/VisionEnabled", visionEnabled);
-  SmartDashboard.putNumber("Shooter/VisionRPS", visionRPS);
-  SmartDashboard.putNumber("Shooter/AppliedTargetRPS", target);
-  SmartDashboard.putNumber("Shooter/MotorRPS", motor.getVelocity().getValueAsDouble());
-}
 }

@@ -115,7 +115,7 @@ shooter.updateVisionSpeed(shooterSpeed);
     drivetrain.clearOmegaOverride();
     pid.reset();
     lastOmega = 0.0;
-   
+  
   }
 
   @Override
