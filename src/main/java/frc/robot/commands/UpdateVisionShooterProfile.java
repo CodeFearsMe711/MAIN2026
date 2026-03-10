@@ -40,7 +40,7 @@ public class UpdateVisionShooterProfile extends Command {
     double distanceMeters = AimAssistMath.getDistanceMeters(bestAllowed);
     double shooterRps = ShooterMath.distanceMetersToShooterRps(distanceMeters);
 
-    shooter.setTargetRPS(shooterRps);
+    shooter.updateVisionSpeed(shooterRps);
   }
 
   @Override

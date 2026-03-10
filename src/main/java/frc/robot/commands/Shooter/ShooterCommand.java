@@ -15,12 +15,12 @@ public class ShooterCommand extends Command {
 
   @Override
   public void initialize() {
-    m_subsystem.setTargetRPS(m_targetRPS);
+    m_subsystem.updateVisionSpeed(m_targetRPS);
   }
 
   @Override
   public void execute() {
-    m_subsystem.setTargetRPS(m_targetRPS);
+    m_subsystem.updateVisionSpeed(m_targetRPS);
   }
 
   @Override

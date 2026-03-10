@@ -68,7 +68,7 @@ double shooterSpeed = ShooterMath.distanceMetersToShooterRps(distance);
 SmartDashboard.putNumber("AutoAim/DistanceMeters", distance);
 SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterSpeed);
 
-shooter.setTargetRPS(shooterSpeed);
+shooter.updateVisionSpeed(shooterSpeed);
 
     SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterSpeed);
 
@@ -115,7 +115,7 @@ shooter.setTargetRPS(shooterSpeed);
     drivetrain.clearOmegaOverride();
     pid.reset();
     lastOmega = 0.0;
-    shooter.stopAndClearTarget();
+   
   }
 
   @Override

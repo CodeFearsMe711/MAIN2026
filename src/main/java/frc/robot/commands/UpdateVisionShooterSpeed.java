@@ -38,15 +38,15 @@ public class UpdateVisionShooterSpeed extends Command {
       return;
     }
 
+    double forwardDistanceMeters = Math.abs(bestAllowed.getBestCameraToTarget().getX());
+    double shooterRps = ShooterMath.distanceMetersToShooterRps(forwardDistanceMeters);
+
     SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", true);
-
-    double distanceMeters = AimAssistMath.getDistanceMeters(bestAllowed);
-    double shooterRps = ShooterMath.distanceMetersToShooterRps(distanceMeters);
-
-    SmartDashboard.putNumber("AutoAim/DistanceMeters", distanceMeters);
+    SmartDashboard.putNumber("AutoAim/TagId", bestAllowed.getFiducialId());
+    SmartDashboard.putNumber("AutoAim/ForwardDistanceMeters", forwardDistanceMeters);
     SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterRps);
 
-    shooter.updateVisionTargetRPS(shooterRps);
+    shooter.updateVisionSpeed(shooterRps);
   }
 
   @Override
