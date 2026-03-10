@@ -3,6 +3,7 @@ package frc.robot;
 import com.ctre.phoenix6.HootAutoReplay;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,6 +16,7 @@ import frc.robot.subsystems.LEDS.LumenLightsSubsystem;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.commands.Intake.IntakeArmEnableDropCommand;
 
@@ -77,6 +79,8 @@ public class Robot extends TimedRobot {
     m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
 
 UsbCamera camera = CameraServer.startAutomaticCapture(0);
+camera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
+camera.setPixelFormat(PixelFormat.kYUYV);
 camera.setResolution(320, 240);
 camera.setFPS(20);
 }
