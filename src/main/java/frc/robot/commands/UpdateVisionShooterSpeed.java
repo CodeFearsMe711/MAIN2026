@@ -1,51 +1,54 @@
 package frc.robot.commands;
 
-import java.util.Optional;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants.VisionConstants;
-import frc.robot.SWERVE.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
+import frc.robot.util.AimAssistMath;
+import frc.robot.util.ShooterMath;
 
 public class UpdateVisionShooterSpeed extends Command {
-
   private final PhotonVisionSubsytem vision;
   private final ShooterSubsystem shooter;
-  private final CommandSwerveDrivetrain drivetrain;
 
   public UpdateVisionShooterSpeed(
       PhotonVisionSubsytem vision,
-      ShooterSubsystem shooter,
-      CommandSwerveDrivetrain drivetrain) {
+      ShooterSubsystem shooter) {
     this.vision = vision;
     this.shooter = shooter;
-    this.drivetrain = drivetrain;
 
     addRequirements(shooter);
   }
 
-  private static double distanceToShooterRps(double distanceMeters) {
-    if (distanceMeters < 2.0) return 70.0;
-    if (distanceMeters < 3.0) return 90.0;
-    if (distanceMeters < 4.0) return 110.0;
-    if (distanceMeters < 5.0) return 125.0;
-    return 140.0;
-  }
-
   @Override
   public void execute() {
-    Optional<Double> distanceOpt =
-        vision.getBestAllowedTagDistanceMeters(
-            drivetrain.getState().Pose,
-            VisionConstants.kAimTagIds);
+    var result = vision.getLatestResult();
 
-    if (distanceOpt.isEmpty()) {
+    if (!result.hasTargets()) {
+      SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", false);
       return;
     }
 
-    double shooterRps = distanceToShooterRps(distanceOpt.get());
-    shooter.setRPS(shooterRps);
+    var bestAllowed =
+        AimAssistMath.findBestAllowedTarget(
+            result.getTargets(),
+            VisionConstants.kAimTagIds);
+
+    if (bestAllowed == null) {
+      SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", false);
+      return;
+    }
+
+    SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", true);
+
+    double distanceMeters = AimAssistMath.getDistanceMeters(bestAllowed);
+    double shooterRps = ShooterMath.distanceMetersToShooterRps(distanceMeters);
+
+    SmartDashboard.putNumber("AutoAim/DistanceMeters", distanceMeters);
+    SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterRps);
+
+    shooter.setTargetRPS(shooterRps);
   }
 
   @Override

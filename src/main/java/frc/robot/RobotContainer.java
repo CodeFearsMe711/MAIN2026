@@ -270,20 +270,22 @@ public class RobotContainer {
             m_intakeSubsystem));
 
     // Main Shooter RPS
-    SmartDashboard.putNumber("Shooter/TargetRPS", 75);
-    m_driverController.a().whileTrue(
-        Commands.runEnd(
-            () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
-            () -> m_shootersubsystem.stop(),
-            m_shootersubsystem));
+SmartDashboard.putNumber("Shooter/TargetRPS", 75);
+m_driverController.a().whileTrue(
+    Commands.runEnd(
+        () -> m_shootersubsystem.setTargetRPS(
+            SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
+        () -> m_shootersubsystem.stop(),
+        m_shootersubsystem));
 
-    // Lower shooter RPS
-    SmartDashboard.putNumber("Shooter/FastTargetRPS", 125);
-    m_driverController.y().whileTrue(
-        Commands.runEnd(
-            () -> m_shootersubsystem.setRPS(SmartDashboard.getNumber("Shooter/FastTargetRPS", 0)),
-            () -> m_shootersubsystem.stop(),
-            m_shootersubsystem));
+// Lower shooter RPS
+SmartDashboard.putNumber("Shooter/FastTargetRPS", 125);
+m_driverController.y().whileTrue(
+    Commands.runEnd(
+        () -> m_shootersubsystem.setTargetRPS(
+            SmartDashboard.getNumber("Shooter/FastTargetRPS", 0)),
+        () -> m_shootersubsystem.stop(),
+        m_shootersubsystem));
 
     // Shooter feeder RPS
     SmartDashboard.putNumber("Shooter/FeedRPS", 35);
@@ -418,8 +420,7 @@ public class RobotContainer {
 m_driverController.leftBumper().whileTrue(
     new UpdateVisionShooterSpeed(
         m_photonVision,
-        m_shootersubsystem,
-        drivetrain));
+        m_shootersubsystem));
 
 m_driverController.leftBumper().onFalse(
     Commands.runOnce(
@@ -428,7 +429,6 @@ m_driverController.leftBumper().onFalse(
           m_shootersubsystem.stop();
         },
         m_shootersubsystem));
-
   }
   public void updateVisionFusion() {
     Pose2d currentPose = drivetrain.getState().Pose;
