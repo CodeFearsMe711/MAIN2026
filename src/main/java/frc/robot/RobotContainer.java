@@ -1,5 +1,3 @@
-//```java
-// src/main/java/frc/robot/RobotContainer.java
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
@@ -38,7 +36,10 @@ import frc.robot.commands.AimHubTagOverride;
 import frc.robot.commands.Climber.ManualClimberCommand;
 import frc.robot.commands.Climber.SetClimberPositionCommand;
 import frc.robot.commands.Intake.IntakeArmCommand;
-import frc.robot.commands.NamedCommands.*;
+import frc.robot.commands.NamedCommands.NamedAgitator;
+import frc.robot.commands.NamedCommands.NamedIntake;
+import frc.robot.commands.NamedCommands.NamedShooter;
+import frc.robot.commands.NamedCommands.NamedShooterFeed;
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
 import frc.robot.subsystems.Intake.IntakeArmSubsystem;
@@ -52,8 +53,8 @@ import frc.robot.util.AimAssistMath;
 import frc.robot.util.ShooterMath;
 
 public class RobotContainer {
-  private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+  private final double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+  private final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
@@ -78,7 +79,6 @@ public class RobotContainer {
   private final CommandXboxController c_driverController =
       new CommandXboxController(OperatorConstants.cDriverControllerPort);
 
-  // Subsystems
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   private final IntakeArmSubsystem m_intakeArmSubsystem = new IntakeArmSubsystem();
 
@@ -99,7 +99,6 @@ public class RobotContainer {
   private final AgitatorSubsystem m_agitatorsubsystem = new AgitatorSubsystem();
   private final ShooterFeederSubsytem m_shooterFeederSubsytem = new ShooterFeederSubsytem();
 
-  // Vision
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
 
   @SuppressWarnings("unused")
@@ -107,7 +106,7 @@ public class RobotContainer {
       new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
 
   private final edu.wpi.first.math.controller.PIDController m_aimPid =
-      new edu.wpi.first.math.controller.PIDController(6.0, 0.0, 0);
+      new edu.wpi.first.math.controller.PIDController(6.0, 0.0, 0.0);
 
   @SuppressWarnings("unused")
   private final edu.wpi.first.math.controller.PIDController m_rangePid =
@@ -116,17 +115,14 @@ public class RobotContainer {
           VisionConstants.kAimRangeKi,
           VisionConstants.kAimRangeKd);
 
-  // Vision fusion gating state
   private double m_lastVisionTimestamp = -1.0;
 
-  // Vision fusion outlier tunables
   private static final double kMaxVisionStalenessSec = 0.250;
   private static final double kBasePosTolMeters = 0.35;
   private static final double kBaseRotTolRad = Units.degreesToRadians(12.0);
   private static final double kPosTolPerSecMeters = 3.0;
   private static final double kRotTolPerSecRad = Units.degreesToRadians(360.0);
 
-  // PathPlanner
   private RobotConfig m_robotConfig;
   private final SendableChooser<Command> m_autoChooser;
 
@@ -243,6 +239,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+    SmartDashboard.putString("ZZZ_ROBOTCONTAINER_VERSION", "ROBOTCONTAINER_NEW_BUILD_123");
     m_driverController.povDown().onTrue(
         Commands.runOnce(
             () -> drivetrain.resetPose(new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0))),
@@ -252,14 +249,11 @@ public class RobotContainer {
         drivetrain.applyRequest(
             () -> {
               double ly =
-                  edu.wpi.first.math.MathUtil.applyDeadband(
-                      m_driverController.getLeftY(), 0.08);
+                  edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
               double lx =
-                  edu.wpi.first.math.MathUtil.applyDeadband(
-                      m_driverController.getLeftX(), 0.08);
+                  edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftX(), 0.08);
               double rx =
-                  edu.wpi.first.math.MathUtil.applyDeadband(
-                      m_driverController.getRightX(), 0.08);
+                  edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getRightX(), 0.08);
 
               return drive
                   .withVelocityX(-ly * MaxSpeed)
@@ -271,29 +265,16 @@ public class RobotContainer {
     RobotModeTriggers.disabled().whileTrue(
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-    m_driverController.back()
-        .and(m_driverController.y())
-        .whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    m_driverController.back().and(m_driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    m_driverController.back().and(m_driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    m_driverController.start().and(m_driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    m_driverController.start().and(m_driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    m_driverController.back()
-        .and(m_driverController.x())
-        .whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-
-    m_driverController.start()
-        .and(m_driverController.y())
-        .whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-
-    m_driverController.start()
-        .and(m_driverController.x())
-        .whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
-    m_driverController.back()
-        .and(m_driverController.leftBumper())
+    m_driverController.back().and(m_driverController.leftBumper())
         .onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    // Intake RPS
     SmartDashboard.putNumber("Intake/TargetRPS", 40);
     c_driverController.rightBumper().whileTrue(
         Commands.runEnd(
@@ -301,21 +282,19 @@ public class RobotContainer {
             () -> m_intakeSubsystem.stop(),
             m_intakeSubsystem));
 
-    // Shooter presets
-    SmartDashboard.putNumber("Shooter/LowPresetRPS", 35);
+    SmartDashboard.putNumber("ShooterLowPresetRPS", 35.0);
+    SmartDashboard.putNumber("ShooterFastPresetRPS", 55.0);
 
     m_driverController.a().whileTrue(
         Commands.runEnd(
-            () -> m_shootersubsystem.setLowPreset(true),
-            () -> m_shootersubsystem.setLowPreset(false)));
+            () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterLowPresetRPS", 35.0)),
+            () -> m_shootersubsystem.clearManualRPS()));
 
-SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
     m_driverController.y().whileTrue(
         Commands.runEnd(
-            () -> m_shootersubsystem.setFastPreset(true),
-            () -> m_shootersubsystem.setFastPreset(false)));
+            () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterFastPresetRPS", 55.0)),
+            () -> m_shootersubsystem.clearManualRPS()));
 
-    // Shooter feeder RPS
     SmartDashboard.putNumber("Shooter/FeedRPS", 35);
     m_driverController.rightBumper().whileTrue(
         Commands.runEnd(
@@ -323,7 +302,6 @@ SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
             () -> m_shooterFeederSubsytem.stop(),
             m_shooterFeederSubsytem));
 
-    // Agitator
     SmartDashboard.putNumber("Agitator/TargetRPS", 20);
     c_driverController.a().whileTrue(
         Commands.runEnd(
@@ -339,21 +317,12 @@ SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
             () -> m_agitatorsubsystem.stop(),
             m_agitatorsubsystem));
 
-    // =========================
-    // INTAKE ARM
-    // =========================
     SmartDashboard.putNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
     SmartDashboard.putNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
-
     SmartDashboard.putNumber("IntakeArm/TeleopCruiseRps", IntakeArmConstants.kCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
-
-    SmartDashboard.putNumber(
-        "IntakeArm/EnableCruiseRps",
-        IntakeArmConstants.kEnableCruiseRps_Arm);
-    SmartDashboard.putNumber(
-        "IntakeArm/EnableAccelRps2",
-        IntakeArmConstants.kEnableAccelRps2_Arm);
+    SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
+    SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
 
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
@@ -363,15 +332,8 @@ SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
                 return;
               }
 
-              double downDeg =
-                  SmartDashboard.getNumber(
-                      "IntakeArm/DownDeg",
-                      IntakeArmConstants.kPosDegA);
-
-              double upDeg =
-                  SmartDashboard.getNumber(
-                      "IntakeArm/UpDeg",
-                      IntakeArmConstants.kPosDegB);
+              double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
+              double upDeg = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
 
               double t = m_driverController.getLeftTriggerAxis();
 
@@ -389,9 +351,6 @@ SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
             },
             m_intakeArmSubsystem));
 
-    // =========================
-    // CLIMBER
-    // =========================
     c_driverController.y().whileTrue(
         new ManualClimberCommand(
             m_ClimberSubsystem,
@@ -402,106 +361,95 @@ SmartDashboard.putNumber("Shooter/FastTargetRPS", 70);
             m_ClimberSubsystem,
             ManualClimberCommand.ClimberDirection.DOWN));
 
-    // =========================
-    // AIM ASSIST
-    // =========================
-    m_driverController.leftBumper().onTrue(
-        Commands.runOnce(() -> m_shootersubsystem.setVisionEnabled(true)));
+   // =========================
+   // AIM ASSIST + AUTO SHOOT SPEED
+   // =========================
+m_driverController.leftBumper().whileTrue(
+    drivetrain.applyRequest(
+        () -> {
+          m_shootersubsystem.setVisionEnabled(true);
+          SmartDashboard.putBoolean("AutoAimLBActive", true);
 
-    m_driverController.leftBumper().whileTrue(
-        drivetrain.applyRequest(
-            () -> {
-              double ly =
-                  edu.wpi.first.math.MathUtil.applyDeadband(
-                      m_driverController.getLeftY(), 0.08);
-              double lx =
-                  edu.wpi.first.math.MathUtil.applyDeadband(
-                      m_driverController.getLeftX(), 0.08);
+          double ly =
+              edu.wpi.first.math.MathUtil.applyDeadband(
+                  m_driverController.getLeftY(), 0.08);
+          double lx =
+              edu.wpi.first.math.MathUtil.applyDeadband(
+                  m_driverController.getLeftX(), 0.08);
 
-              double vx = -ly * MaxSpeed;
-              double vy = -lx * MaxSpeed;
-              double omega = 0.0;
+          double vx = -ly * MaxSpeed;
+          double vy = -lx * MaxSpeed;
+          double omega = 0.0;
 
-              var result = m_photonVision.getLatestResult();
+          var result = m_photonVision.getLatestResult();
 
-              if (result.hasTargets()) {
-                var bestAllowed =
-                    AimAssistMath.findBestAllowedTarget(
-                        result.getTargets(),
-                        VisionConstants.kAimTagIds);
+          if (!result.hasTargets()) {
+            SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
+            return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+          }
 
-                if (bestAllowed != null) {
-                  var robotSpeeds = drivetrain.getRobotRelativeSpeeds();
-                  var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, robotSpeeds);
+          var bestAllowed =
+              AimAssistMath.findBestAllowedTarget(
+                  result.getTargets(),
+                  VisionConstants.kAimTagIds);
 
-                  double forwardDistanceMeters =
-    Math.abs(bestAllowed.getBestCameraToTarget().getX());
+          if (bestAllowed == null) {
+            SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
+            return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+          }
 
-double shooterRps;
-if (forwardDistanceMeters < 2.5) {
-  shooterRps = 70.0;
-} else {
-  shooterRps = 170.0;
-}
+          SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
 
-                  SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", true);
-                  SmartDashboard.putNumber("AutoAim/TagId", bestAllowed.getFiducialId());
-                  SmartDashboard.putNumber(
-                      "AutoAim/ForwardDistanceMeters",
-                      forwardDistanceMeters);
-                  SmartDashboard.putNumber(
-                      "AutoAim/CameraToTargetNormMeters",
-                      bestAllowed.getBestCameraToTarget().getTranslation().getNorm());
-                  SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterRps);
+          // SHOOTER SPEED FROM TAG AREA
+          double area = bestAllowed.getArea();
+          double shooterRps = ShooterMath.tagAreaToShooterRps(area);
 
-                  m_shootersubsystem.updateVisionSpeed(shooterRps);
+          SmartDashboard.putNumber("AutoAimArea", area);
+          SmartDashboard.putNumber("AutoAimShooterTargetRPS", shooterRps);
 
-                  if (yawOpt.isPresent()) {
-                    double yawErrRad = yawOpt.get();
+          m_shootersubsystem.updateVisionSpeed(shooterRps);
 
-                    if (Math.abs(yawErrRad) < VisionConstants.kAimMinErrorRad) {
-                      omega = 0.0;
-                      m_aimPid.reset();
-                    } else {
-                      double cmd = m_aimPid.calculate(yawErrRad, 0.0);
-                      omega =
-                          clamp(
-                              cmd,
-                              -VisionConstants.kAimMaxOmegaRadPerSec,
-                              VisionConstants.kAimMaxOmegaRadPerSec);
-                    }
-                  } else {
-                    m_aimPid.reset();
-                  }
-                } else {
-                  SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", false);
-                  m_aimPid.reset();
-                }
-              } else {
-                SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", false);
-                m_aimPid.reset();
-              }
+          // AIMING FROM TAG YAW
+          var robotSpeeds = drivetrain.getRobotRelativeSpeeds();
+          var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, robotSpeeds);
 
-              return drive
-                  .withVelocityX(vx)
-                  .withVelocityY(vy)
-                  .withRotationalRate(omega);
-            }));
+          if (yawOpt.isPresent()) {
+            double yawErrRad = yawOpt.get();
 
-    m_driverController.leftBumper().onFalse(
-        Commands.runOnce(
-            () -> {
+            SmartDashboard.putNumber(
+                "AutoAimYawErrDeg",
+                edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRad));
+
+            if (Math.abs(yawErrRad) < VisionConstants.kAimMinErrorRad) {
+              omega = 0.0;
               m_aimPid.reset();
-              m_shootersubsystem.setVisionEnabled(false);
-            }));
+            } else {
+              double cmd = m_aimPid.calculate(yawErrRad, 0.0);
 
-    // Optional reset
-    SmartDashboard.putData(
-        "Reset Shooter Vision",
-        Commands.runOnce(
-            () -> m_shootersubsystem.setVisionEnabled(false)));
-  }
+              omega =
+                  clamp(
+                      cmd,
+                      -VisionConstants.kAimMaxOmegaRadPerSec,
+                      VisionConstants.kAimMaxOmegaRadPerSec);
+            }
 
+            SmartDashboard.putNumber("AutoAimOmegaCmd", omega);
+          } else {
+            m_aimPid.reset();
+          }
+
+          return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
+        }));
+
+m_driverController.leftBumper().onFalse(
+    Commands.runOnce(
+        () -> {
+          SmartDashboard.putBoolean("AutoAimLBActive", false);
+          SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
+          m_aimPid.reset();
+          m_shootersubsystem.setVisionEnabled(false);
+        }));
+          }
   public void updateVisionFusion() {
     Pose2d currentPose = drivetrain.getState().Pose;
 
@@ -618,6 +566,3 @@ if (forwardDistanceMeters < 2.5) {
             m_intakeArmSubsystem));
   }
 }
-//```
-
-//One matching change is required in `ShooterSubsystem.java`: anywhere it reads the low manual preset from SmartDashboard, it needs to use `"Shooter/LowPresetRPS"` instead of `"Shooter/TargetRPS"`.

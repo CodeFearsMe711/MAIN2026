@@ -6,8 +6,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants.VisionConstants;
 import frc.robot.SWERVE.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
+import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
 import frc.robot.util.AimAssistMath;
 import frc.robot.util.ShooterMath;
 
@@ -16,6 +16,7 @@ public class AimHubTagOverride extends Command {
   private final PhotonVisionSubsytem vision;
   private final ShooterSubsystem shooter;
   private final PIDController pid;
+
   private double lastOmega = 0.0;
 
   public AimHubTagOverride(
@@ -37,6 +38,8 @@ public class AimHubTagOverride extends Command {
   public void initialize() {
     pid.reset();
     lastOmega = 0.0;
+    shooter.setVisionEnabled(true);
+    SmartDashboard.putBoolean("AutoAimLBActive", true);
   }
 
   @Override
@@ -44,6 +47,7 @@ public class AimHubTagOverride extends Command {
     var result = vision.getLatestResult();
 
     if (!result.hasTargets()) {
+      SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
       drivetrain.clearOmegaOverride();
       pid.reset();
       lastOmega = 0.0;
@@ -56,21 +60,25 @@ public class AimHubTagOverride extends Command {
             VisionConstants.kAimTagIds);
 
     if (bestAllowed == null) {
+      SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
       drivetrain.clearOmegaOverride();
       pid.reset();
       lastOmega = 0.0;
       return;
     }
 
-    double distance = AimAssistMath.getDistanceMeters(bestAllowed);
-double shooterSpeed = ShooterMath.distanceMetersToShooterRps(distance);
+    SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
 
-SmartDashboard.putNumber("AutoAim/DistanceMeters", distance);
-SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterSpeed);
+    double area = bestAllowed.getArea();
+    double yawDeg = bestAllowed.getYaw();
 
-shooter.updateVisionSpeed(shooterSpeed);
+    double shooterSpeed = ShooterMath.tagAreaToShooterRps(area);
 
-    SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterSpeed);
+    SmartDashboard.putNumber("AutoAimArea", area);
+    SmartDashboard.putNumber("AutoAimYawDeg", yawDeg);
+    SmartDashboard.putNumber("AutoAimShooterTargetRPS", shooterSpeed);
+
+    shooter.updateVisionSpeed(shooterSpeed);
 
     ChassisSpeeds speeds = drivetrain.getRobotRelativeSpeeds();
     var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, speeds);
@@ -90,7 +98,6 @@ shooter.updateVisionSpeed(shooterSpeed);
       pid.reset();
     } else {
       double cmd = pid.calculate(yawErrRad, 0.0);
-
       double unclampedOmega =
           clamp(
               cmd,
@@ -103,19 +110,21 @@ shooter.updateVisionSpeed(shooterSpeed);
     lastOmega = omega;
 
     SmartDashboard.putNumber(
-        "AutoAim/YawErrDeg",
+        "AutoAimYawErrDeg",
         edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRad));
-    SmartDashboard.putNumber("AutoAim/OmegaCmd", omega);
+    SmartDashboard.putNumber("AutoAimOmegaCmd", omega);
 
     drivetrain.setOmegaOverride(omega);
   }
 
   @Override
   public void end(boolean interrupted) {
+    SmartDashboard.putBoolean("AutoAimLBActive", false);
+    SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
     drivetrain.clearOmegaOverride();
     pid.reset();
     lastOmega = 0.0;
-  
+    shooter.setVisionEnabled(false);
   }
 
   @Override

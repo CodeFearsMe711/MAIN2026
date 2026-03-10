@@ -64,7 +64,7 @@ public final class Constants {
     
 
     // Aiming-only yaw trim (deg). + means pretend target is more to the right.
-    public static final double kAimYawOffsetDeg = -10.0;
+    public static final double kAimYawOffsetDeg = -6.0;
 
     // =========================
     // Aim Assist: RANGE HOLD (teleop)
@@ -88,7 +88,7 @@ public final class Constants {
     // Shoot-on-the-move lead compensation
     // =========================
  public static final double kAimFlightTimeSec = 0.30;
-public static final double kAimLeadScale = 1.2;
+public static final double kAimLeadScale = 5;
 public static final double kAimMaxLeadDeg = 10.0;
 
 public static final double kAimMaxOmegaRadPerSec = 2.0;

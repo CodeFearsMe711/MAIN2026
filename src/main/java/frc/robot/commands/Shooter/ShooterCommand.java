@@ -4,28 +4,28 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter.ShooterSubsystem;
 
 public class ShooterCommand extends Command {
-  private final ShooterSubsystem m_subsystem;
-  private final double m_targetRPS;
+  private final ShooterSubsystem shooter;
+  private final double targetRPS;
 
-  public ShooterCommand(ShooterSubsystem subsystem, double targetRPS) {
-    m_subsystem = subsystem;
-    m_targetRPS = targetRPS;
-    addRequirements(subsystem);
+  public ShooterCommand(ShooterSubsystem shooter, double targetRPS) {
+    this.shooter = shooter;
+    this.targetRPS = targetRPS;
+    addRequirements(shooter);
   }
 
   @Override
   public void initialize() {
-    m_subsystem.updateVisionSpeed(m_targetRPS);
+    shooter.setManualRPS(targetRPS);
   }
 
   @Override
   public void execute() {
-    m_subsystem.updateVisionSpeed(m_targetRPS);
+    shooter.setManualRPS(targetRPS);
   }
 
   @Override
   public void end(boolean interrupted) {
-    m_subsystem.stop();
+    shooter.clearManualRPS();
   }
 
   @Override
