@@ -17,8 +17,6 @@ public class UpdateVisionShooterSpeed extends Command {
       ShooterSubsystem shooter) {
     this.vision = vision;
     this.shooter = shooter;
-
-    addRequirements(shooter);
   }
 
   @Override
@@ -48,12 +46,11 @@ public class UpdateVisionShooterSpeed extends Command {
     SmartDashboard.putNumber("AutoAim/DistanceMeters", distanceMeters);
     SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterRps);
 
-    shooter.setTargetRPS(shooterRps);
+    shooter.updateVisionTargetRPS(shooterRps);
   }
 
   @Override
   public void end(boolean interrupted) {
-    shooter.stop();
   }
 
   @Override

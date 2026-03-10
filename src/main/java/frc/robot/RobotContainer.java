@@ -273,19 +273,15 @@ public class RobotContainer {
 SmartDashboard.putNumber("Shooter/TargetRPS", 75);
 m_driverController.a().whileTrue(
     Commands.runEnd(
-        () -> m_shootersubsystem.setTargetRPS(
-            SmartDashboard.getNumber("Shooter/TargetRPS", 0)),
-        () -> m_shootersubsystem.stop(),
-        m_shootersubsystem));
+        () -> m_shootersubsystem.setLowPresetHeld(true),
+        () -> m_shootersubsystem.setLowPresetHeld(false)));
 
 // Lower shooter RPS
 SmartDashboard.putNumber("Shooter/FastTargetRPS", 125);
 m_driverController.y().whileTrue(
     Commands.runEnd(
-        () -> m_shootersubsystem.setTargetRPS(
-            SmartDashboard.getNumber("Shooter/FastTargetRPS", 0)),
-        () -> m_shootersubsystem.stop(),
-        m_shootersubsystem));
+        () -> m_shootersubsystem.setFastPresetHeld(true),
+        () -> m_shootersubsystem.setFastPresetHeld(false)));
 
     // Shooter feeder RPS
     SmartDashboard.putNumber("Shooter/FeedRPS", 35);
@@ -417,6 +413,9 @@ m_driverController.y().whileTrue(
           return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
         }));
 
+m_driverController.leftBumper().onTrue(
+    Commands.runOnce(() -> m_shootersubsystem.setVisionEnabled(true)));
+
 m_driverController.leftBumper().whileTrue(
     new UpdateVisionShooterSpeed(
         m_photonVision,
@@ -426,9 +425,8 @@ m_driverController.leftBumper().onFalse(
     Commands.runOnce(
         () -> {
           m_aimPid.reset();
-          m_shootersubsystem.stop();
-        },
-        m_shootersubsystem));
+          m_shootersubsystem.setVisionEnabled(false);
+        }));
   }
   public void updateVisionFusion() {
     Pose2d currentPose = drivetrain.getState().Pose;
