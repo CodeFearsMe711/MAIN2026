@@ -51,6 +51,11 @@ public class ShooterSubsystem extends SubsystemBase {
     visionTargetValid = true;
   }
 
+  public void clearVisionTarget() {
+    visionTargetValid = false;
+    visionTargetRPS = 0.0;
+  }
+
   public void setTargetRPS(double rps) {
     visionTargetRPS = rps;
     visionTargetValid = true;

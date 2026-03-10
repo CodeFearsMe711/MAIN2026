@@ -55,6 +55,7 @@ import frc.robot.subsystems.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.SmartDashboardSubsytem;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
 import frc.robot.subsystems.Vision.PhotonVisionSubsytem;
+import frc.robot.util.ShooterMath;
 
 import frc.robot.commands.NamedCommands.*;
 import frc.robot.util.AimAssistMath;
@@ -361,9 +362,12 @@ m_driverController.y().whileTrue(
             ManualClimberCommand.ClimberDirection.DOWN));
 
     // =========================
-    // AIM ASSIST
-    // =========================
-   m_driverController.leftBumper().whileTrue(
+// AIM ASSIST
+// =========================
+m_driverController.leftBumper().onTrue(
+    Commands.runOnce(() -> m_shootersubsystem.setVisionEnabled(true)));
+
+m_driverController.leftBumper().whileTrue(
     drivetrain.applyRequest(
         () -> {
           double ly = edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getLeftY(), 0.08);
@@ -385,6 +389,22 @@ m_driverController.y().whileTrue(
               var robotSpeeds = drivetrain.getRobotRelativeSpeeds();
               var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, robotSpeeds);
 
+              double forwardDistanceMeters =
+                  Math.abs(bestAllowed.getBestCameraToTarget().getX());
+
+              double shooterRps =
+                  ShooterMath.distanceMetersToShooterRps(forwardDistanceMeters);
+
+              SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", true);
+              SmartDashboard.putNumber("AutoAim/TagId", bestAllowed.getFiducialId());
+              SmartDashboard.putNumber("AutoAim/ForwardDistanceMeters", forwardDistanceMeters);
+              SmartDashboard.putNumber(
+                  "AutoAim/CameraToTargetNormMeters",
+                  bestAllowed.getBestCameraToTarget().getTranslation().getNorm());
+              SmartDashboard.putNumber("AutoAim/ShooterTargetRPS", shooterRps);
+
+              m_shootersubsystem.updateVisionTargetRPS(shooterRps);
+
               if (yawOpt.isPresent()) {
                 double yawErrRad = yawOpt.get();
 
@@ -404,22 +424,18 @@ m_driverController.y().whileTrue(
                 m_aimPid.reset();
               }
             } else {
+              SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", false);
+              m_shootersubsystem.clearVisionTarget();
               m_aimPid.reset();
             }
           } else {
+            SmartDashboard.putBoolean("AutoAim/HasAllowedTarget", false);
+            m_shootersubsystem.clearVisionTarget();
             m_aimPid.reset();
           }
 
           return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
         }));
-
-m_driverController.leftBumper().onTrue(
-    Commands.runOnce(() -> m_shootersubsystem.setVisionEnabled(true)));
-
-m_driverController.leftBumper().whileTrue(
-    new UpdateVisionShooterSpeed(
-        m_photonVision,
-        m_shootersubsystem));
 
 m_driverController.leftBumper().onFalse(
     Commands.runOnce(
