@@ -228,7 +228,7 @@ public void teleopInit() {
     m_autonomousCommand = null;
   }
 
-  edu.wpi.first.wpilibj2.command.CommandScheduler.getInstance().cancelAll();
+ CommandScheduler.getInstance().cancelAll();
 }
 
 

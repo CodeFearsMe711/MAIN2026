@@ -102,15 +102,28 @@
                             "data": {
                               "commands": [
                                 {
-                                  "type": "named",
+                                  "type": "race",
                                   "data": {
-                                    "name": "Shooter feed"
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "agitater"
+                                    "commands": [
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "Shooter feed"
+                                        }
+                                      },
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "agitater"
+                                        }
+                                      },
+                                      {
+                                        "type": "wait",
+                                        "data": {
+                                          "waitTime": 1.5
+                                        }
+                                      }
+                                    ]
                                   }
                                 },
                                 {
@@ -139,9 +152,28 @@
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "parallel",
                       "data": {
-                        "pathName": "9.5"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "9.5"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "ClimberUp"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "ClimberDown"
                       }
                     }
                   ]
