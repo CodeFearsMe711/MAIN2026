@@ -177,7 +177,9 @@ public class RobotContainer {
   }
 
   private void configureNamedCommands() {
-    NamedCommands.registerCommand("Shooter system", new NamedShooter(m_shootersubsystem));
+    NamedCommands.registerCommand(
+    "Shooter system",
+    new NamedShooter(m_shootersubsystem, m_photonVision));
     NamedCommands.registerCommand("Shooter feed", new NamedShooterFeed(m_shooterFeederSubsytem));
     NamedCommands.registerCommand("agitater", new NamedAgitator(m_agitatorsubsystem));
     NamedCommands.registerCommand("intake", new NamedIntake(m_intakeSubsystem));

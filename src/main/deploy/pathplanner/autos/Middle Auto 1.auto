@@ -27,12 +27,6 @@
                             "data": {
                               "pathName": "5.0"
                             }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "IntakeArmDown"
-                            }
                           }
                         ]
                       }
@@ -58,25 +52,6 @@
                             "data": {
                               "waitTime": 1.5
                             }
-                          },
-                          {
-                            "type": "sequential",
-                            "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 0.2
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "IntakeArmUp"
-                                  }
-                                }
-                              ]
-                            }
                           }
                         ]
                       }
@@ -98,9 +73,22 @@
                             }
                           },
                           {
-                            "type": "named",
+                            "type": "sequential",
                             "data": {
-                              "name": "IntakeArmDown"
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 1.5
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "IntakeArmDown"
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]

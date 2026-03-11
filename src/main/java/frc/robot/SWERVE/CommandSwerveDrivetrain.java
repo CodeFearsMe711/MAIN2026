@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.geometry.Pose2d;
 
-
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
@@ -22,7 +21,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,10 +40,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-    /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
-    private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
-    /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
-    private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
+    /* Always treat the physical front of the robot as forward on boot */
+    private static final Rotation2d kOperatorPerspectiveForward = Rotation2d.kZero;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
@@ -93,13 +89,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * Used by AutoBuilder: reset the robot pose to a known pose at the start of autos.
      * If your Phoenix version uses a different method name, change this ONE line.
      */
-  @Override
-public void resetPose(Pose2d pose) {
-    super.resetPose(pose); // resets X, Y, and heading
-}
-
-
-
+    @Override
+    public void resetPose(Pose2d pose) {
+        super.resetPose(pose); // resets X, Y, and heading
+    }
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -112,7 +105,6 @@ public void resetPose(Pose2d pose) {
             null,        // Use default ramp rate (1 V/s)
             Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
             null,        // Use default timeout (10 s)
-            // Log state with SignalLogger class
             state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())
         ),
         new SysIdRoutine.Mechanism(
@@ -128,7 +120,6 @@ public void resetPose(Pose2d pose) {
             null,        // Use default ramp rate (1 V/s)
             Volts.of(7), // Use dynamic voltage of 7 V
             null,        // Use default timeout (10 s)
-            // Log state with SignalLogger class
             state -> SignalLogger.writeString("SysIdSteer_State", state.toString())
         ),
         new SysIdRoutine.Mechanism(
@@ -139,16 +130,15 @@ public void resetPose(Pose2d pose) {
     );
 
     private void publishOdometryToDashboard() {
-    Pose2d pose = this.getState().Pose; // CTRE state pose
+        Pose2d pose = this.getState().Pose;
 
-    SmartDashboard.putNumber("Odo/X_m", pose.getX());
-    SmartDashboard.putNumber("Odo/Y_m", pose.getY());
-    SmartDashboard.putNumber("Odo/Heading_deg", pose.getRotation().getDegrees());
+        SmartDashboard.putNumber("Odo/X_m", pose.getX());
+        SmartDashboard.putNumber("Odo/Y_m", pose.getY());
+        SmartDashboard.putNumber("Odo/Heading_deg", pose.getRotation().getDegrees());
 
-    // Optional extra: shows overall speed your odometry thinks you're doing
-    SmartDashboard.putNumber("Odo/Speed_mps", this.getState().Speeds.vxMetersPerSecond);
-    SmartDashboard.putNumber("Odo/Omega_radps", this.getState().Speeds.omegaRadiansPerSecond);
-}
+        SmartDashboard.putNumber("Odo/Speed_mps", this.getState().Speeds.vxMetersPerSecond);
+        SmartDashboard.putNumber("Odo/Omega_radps", this.getState().Speeds.omegaRadiansPerSecond);
+    }
 
     /*
      * SysId routine for characterizing rotation.
@@ -157,19 +147,14 @@ public void resetPose(Pose2d pose) {
      */
     private final SysIdRoutine m_sysIdRoutineRotation = new SysIdRoutine(
         new SysIdRoutine.Config(
-            /* This is in radians per second², but SysId only supports "volts per second" */
             Volts.of(Math.PI / 6).per(Second),
-            /* This is in radians per second, but SysId only supports "volts" */
             Volts.of(Math.PI),
-            null, // Use default timeout (10 s)
-            // Log state with SignalLogger class
+            null,
             state -> SignalLogger.writeString("SysIdRotation_State", state.toString())
         ),
         new SysIdRoutine.Mechanism(
             output -> {
-                /* output is actually radians per second, but SysId only supports "volts" */
                 setControl(m_rotationCharacterization.withRotationalRate(output.in(Volts)));
-                /* also log the requested output for SysId */
                 SignalLogger.writeDouble("Rotational_Rate", output.in(Volts));
             },
             null,
@@ -227,19 +212,15 @@ public void resetPose(Pose2d pose) {
     }
 
     @Override
-    public void periodic() {
-        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-            DriverStation.getAlliance().ifPresent(allianceColor -> {
-                setOperatorPerspectiveForward(
-                    allianceColor == Alliance.Red
-                        ? kRedAlliancePerspectiveRotation
-                        : kBlueAlliancePerspectiveRotation
-                );
-                m_hasAppliedOperatorPerspective = true;
-                publishOdometryToDashboard();
-            });
-        }
+public void periodic() {
+    if (!m_hasAppliedOperatorPerspective) {
+        setOperatorPerspectiveForward(Rotation2d.kZero);
+        m_hasAppliedOperatorPerspective = true;
     }
+
+    publishOdometryToDashboard();
+}
+    
 
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
@@ -257,19 +238,5 @@ public void resetPose(Pose2d pose) {
     @Override
     public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds));
-    }
-
-    @Override
-    public void addVisionMeasurement(
-        Pose2d visionRobotPoseMeters,
-        double timestampSeconds,
-        Matrix<N3, N1> visionMeasurementStdDevs
-    ) {
-        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
-    }
-
-    @Override
-    public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
-        return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
     }
 }
