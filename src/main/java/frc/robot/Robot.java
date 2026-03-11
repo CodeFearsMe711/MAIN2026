@@ -221,14 +221,14 @@ public void robotPeriodic() {
   }
 }
 
-  @Override
+ @Override
 public void teleopInit() {
   if (m_autonomousCommand != null) {
     m_autonomousCommand.cancel();
     m_autonomousCommand = null;
   }
 
-  m_robotContainer.scheduleTeleopArmDrop();
+  edu.wpi.first.wpilibj2.command.CommandScheduler.getInstance().cancelAll();
 }
 
 

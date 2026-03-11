@@ -258,8 +258,8 @@ public class RobotContainer {
                   edu.wpi.first.math.MathUtil.applyDeadband(m_driverController.getRightX(), 0.08);
 
               return drive
-                  .withVelocityX(-ly * MaxSpeed)
-                  .withVelocityY(-lx * MaxSpeed)
+                  .withVelocityX(ly * MaxSpeed)
+                  .withVelocityY(lx * MaxSpeed)
                   .withRotationalRate(-rx * MaxAngularRate);
             }));
 
