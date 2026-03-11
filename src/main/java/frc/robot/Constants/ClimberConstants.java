@@ -6,7 +6,7 @@ public final class ClimberConstants {
   public static final int kRightMotorId = 38;
   public static final String kCanBus = "rio";
 
-  public static final double kMotorRotationsPerClimberRotation = 100.0;
+  public static final double kMotorRotationsPerClimberRotation = 36.0;
 
   public static final double kMinDeg = 50.0;
   public static final double kMaxDeg = 1500.0;

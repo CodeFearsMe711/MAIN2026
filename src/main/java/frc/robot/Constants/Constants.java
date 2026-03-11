@@ -88,8 +88,8 @@ public final class Constants {
     // Shoot-on-the-move lead compensation
     // =========================
  public static final double kAimFlightTimeSec = 0.30;
-public static final double kAimLeadScale = 5;
-public static final double kAimMaxLeadDeg = 10.0;
+public static final double kAimLeadScale = 2;
+public static final double kAimMaxLeadDeg = 20.0;
 
 public static final double kAimMaxOmegaRadPerSec = 2.0;
 public static final double kAimMinErrorRad = Math.toRadians(1.5);
