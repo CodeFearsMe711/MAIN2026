@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -18,6 +19,12 @@ public class ClimberSubsystem extends SubsystemBase {
 
   private final TalonFX rightMotor =
       new TalonFX(ClimberConstants.kRightMotorId, ClimberConstants.kCanBus);
+
+  private final DigitalInput leftBottomLimit =
+      new DigitalInput(ClimberConstants.kLeftBottomLimitDio);
+
+  private final DigitalInput rightBottomLimit =
+      new DigitalInput(ClimberConstants.kRightBottomLimitDio);
 
   private static final double kLeftMotorSign = 1.0;
   private static final double kRightMotorSign = -1.0;
@@ -33,7 +40,6 @@ public class ClimberSubsystem extends SubsystemBase {
   private double targetMotorRotations = 0.0;
 
   public ClimberSubsystem() {
-
     leftMotor.setNeutralMode(NeutralModeValue.Brake);
     rightMotor.setNeutralMode(NeutralModeValue.Brake);
 
@@ -50,15 +56,21 @@ public class ClimberSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    updateBottomZeroing();
 
     SmartDashboard.putNumber("Climber/Degrees", getDegrees());
+    SmartDashboard.putNumber("Climber/LeftDegrees", getLeftDegrees());
+    SmartDashboard.putNumber("Climber/RightDegrees", getRightDegrees());
+
+    SmartDashboard.putBoolean("Climber/LeftBottomLimit", isLeftBottomPressed());
+    SmartDashboard.putBoolean("Climber/RightBottomLimit", isRightBottomPressed());
+
     SmartDashboard.putBoolean("Climber/AtMinLimit", atMinLimit());
     SmartDashboard.putBoolean("Climber/AtMaxLimit", atMaxLimit());
     SmartDashboard.putBoolean("Climber/HoldEnabled", holdEnabled);
     SmartDashboard.putBoolean("Climber/AutoPosition", autoPositionEnabled);
 
     if (autoPositionEnabled) {
-
       double currentRotations = getMotorRotations();
 
       boolean movingUp = targetMotorRotations > currentRotations;
@@ -74,23 +86,46 @@ public class ClimberSubsystem extends SubsystemBase {
         return;
       }
 
+      // If moving down, let each side stop itself at its own bottom switch
+      if (movingDown) {
+        if (isLeftBottomPressed()) {
+          leftMotor.stopMotor();
+        } else {
+          leftMotor.setControl(positionRequest.withPosition(kLeftMotorSign * targetMotorRotations));
+        }
+
+        if (isRightBottomPressed()) {
+          rightMotor.stopMotor();
+        } else {
+          rightMotor.setControl(positionRequest.withPosition(kRightMotorSign * targetMotorRotations));
+        }
+
+        return;
+      }
+
       leftMotor.setControl(positionRequest.withPosition(kLeftMotorSign * targetMotorRotations));
       rightMotor.setControl(positionRequest.withPosition(kRightMotorSign * targetMotorRotations));
-
       return;
     }
 
     if (holdEnabled) {
-
-      if (getDegrees() <= ClimberConstants.kMinDeg ||
-          getDegrees() >= ClimberConstants.kMaxDeg) {
-
+      if (atMaxLimit()) {
         stopMotors();
         return;
       }
 
-      leftMotor.setControl(holdRequest.withPosition(kLeftMotorSign * holdMotorRotations));
-      rightMotor.setControl(holdRequest.withPosition(kRightMotorSign * holdMotorRotations));
+      // At the bottom, do not hold and grind into the switches
+      if (isLeftBottomPressed()) {
+        leftMotor.stopMotor();
+      } else {
+        leftMotor.setControl(holdRequest.withPosition(kLeftMotorSign * holdMotorRotations));
+      }
+
+      if (isRightBottomPressed()) {
+        rightMotor.stopMotor();
+      } else {
+        rightMotor.setControl(holdRequest.withPosition(kRightMotorSign * holdMotorRotations));
+      }
     }
   }
 
@@ -99,8 +134,25 @@ public class ClimberSubsystem extends SubsystemBase {
     rightMotor.setPosition(0.0);
   }
 
-  public void driveUpManual() {
+  private void updateBottomZeroing() {
+    if (isLeftBottomPressed()) {
+      leftMotor.setPosition(0.0);
+    }
 
+    if (isRightBottomPressed()) {
+      rightMotor.setPosition(0.0);
+    }
+  }
+
+  public boolean isLeftBottomPressed() {
+    return leftBottomLimit.get() == ClimberConstants.kBottomLimitPressedState;
+  }
+
+  public boolean isRightBottomPressed() {
+    return rightBottomLimit.get() == ClimberConstants.kBottomLimitPressedState;
+  }
+
+  public void driveUpManual() {
     holdEnabled = false;
     autoPositionEnabled = false;
 
@@ -116,14 +168,8 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public void driveDownManual() {
-
     holdEnabled = false;
     autoPositionEnabled = false;
-
-    if (atMinLimit()) {
-      stopMotors();
-      return;
-    }
 
     double output = Math.abs(ClimberConstants.kManualDownOutput);
 
@@ -131,12 +177,23 @@ public class ClimberSubsystem extends SubsystemBase {
       output *= ClimberConstants.kNearZeroSlowScale;
     }
 
-    leftMotor.setControl(manualRequest.withOutput(kLeftMotorSign * -output));
-    rightMotor.setControl(manualRequest.withOutput(kRightMotorSign * -output));
+    // Each side stops itself when its own switch is hit
+    if (isLeftBottomPressed()) {
+      leftMotor.stopMotor();
+      leftMotor.setPosition(0.0);
+    } else {
+      leftMotor.setControl(manualRequest.withOutput(kLeftMotorSign * -output));
+    }
+
+    if (isRightBottomPressed()) {
+      rightMotor.stopMotor();
+      rightMotor.setPosition(0.0);
+    } else {
+      rightMotor.setControl(manualRequest.withOutput(kRightMotorSign * -output));
+    }
   }
 
   public void setTargetDegrees(double targetDegrees) {
-
     holdEnabled = false;
     autoPositionEnabled = true;
 
@@ -148,12 +205,10 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public void holdCurrentPosition() {
-
     autoPositionEnabled = false;
 
-    if (getDegrees() <= ClimberConstants.kMinDeg ||
-        getDegrees() >= ClimberConstants.kMaxDeg) {
-
+    // If both are at bottom, do not hold there
+    if (atMinLimit() || atMaxLimit()) {
       stopMotors();
       return;
     }
@@ -163,7 +218,6 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public void stopMotors() {
-
     holdEnabled = false;
     autoPositionEnabled = false;
 
@@ -172,7 +226,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public boolean atMinLimit() {
-    return getDegrees() <= ClimberConstants.kMinDeg;
+    return isLeftBottomPressed() && isRightBottomPressed();
   }
 
   public boolean atMaxLimit() {
@@ -192,19 +246,27 @@ public class ClimberSubsystem extends SubsystemBase {
     return motorRotationsToDegrees(getMotorRotations());
   }
 
+  public double getLeftDegrees() {
+    return motorRotationsToDegrees(getLeftMotorRotations());
+  }
+
+  public double getRightDegrees() {
+    return motorRotationsToDegrees(getRightMotorRotations());
+  }
+
   private double getMotorRotations() {
+    return (getLeftMotorRotations() + getRightMotorRotations()) / 2.0;
+  }
 
-    double leftRot =
-        kLeftMotorSign * leftMotor.getPosition().getValueAsDouble();
+  private double getLeftMotorRotations() {
+    return kLeftMotorSign * leftMotor.getPosition().getValueAsDouble();
+  }
 
-    double rightRot =
-        kRightMotorSign * rightMotor.getPosition().getValueAsDouble();
-
-    return (leftRot + rightRot) / 2.0;
+  private double getRightMotorRotations() {
+    return kRightMotorSign * rightMotor.getPosition().getValueAsDouble();
   }
 
   private static double motorRotationsToDegrees(double motorRotations) {
-
     double climberRotations =
         motorRotations / ClimberConstants.kMotorRotationsPerClimberRotation;
 
@@ -212,7 +274,6 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   private static double degreesToMotorRotations(double degrees) {
-
     double climberRotations = degrees / 360.0;
 
     return climberRotations *

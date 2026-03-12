@@ -11,7 +11,7 @@ public class NamedShooter extends Command {
   private final ShooterSubsystem shooter;
   private final PhotonVisionSubsytem vision;
 
-  private double lastTargetRPS = 55.0;
+  private double lastTargetRPS = 65.0;
 
   public NamedShooter(ShooterSubsystem shooter, PhotonVisionSubsytem vision) {
     this.shooter = shooter;
@@ -36,7 +36,7 @@ public class NamedShooter extends Command {
     var bestAllowed =
         AimAssistMath.findBestAllowedTarget(
             result.getTargets(),
-            VisionConstants.kAimTagIds);
+            VisionConstants.kShooterTagIds);
 
     if (bestAllowed == null) {
       shooter.updateVisionSpeed(lastTargetRPS);

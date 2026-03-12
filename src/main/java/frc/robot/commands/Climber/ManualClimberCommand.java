@@ -1,6 +1,7 @@
 package frc.robot.commands.Climber;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.ClimberConstants;
 import frc.robot.subsystems.Climber.ClimberSubsystem;
 
 public class ManualClimberCommand extends Command {
@@ -34,7 +35,7 @@ public class ManualClimberCommand extends Command {
   @Override
   public void end(boolean interrupted) {
     if (direction == ClimberDirection.UP) {
-      if (climber.getDegrees() > 50.0) {
+      if (climber.getDegrees() > ClimberConstants.kMinDeg + 1.0) {
         climber.holdCurrentPosition();
       } else {
         climber.stopMotors();
