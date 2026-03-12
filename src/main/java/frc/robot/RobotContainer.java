@@ -337,7 +337,7 @@ public class RobotContainer {
               double downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
               double upDeg = SmartDashboard.getNumber("IntakeArm/UpDeg", IntakeArmConstants.kPosDegB);
 
-              double t = m_driverController.getLeftTriggerAxis();
+              double t = c_driverController.getLeftTriggerAxis();
 
               if (t < 0.05) {
                 m_intakeArmSubsystem.setGoalDegrees(downDeg);
