@@ -54,7 +54,7 @@ public final class Constants {
     // =========================
 
     // Put the "right" tag IDs you want to aim at here
-    public static final int[] kAimTagIds = { 10, 26, 21, 18, 5, 2}; 
+    public static final int[] kAimTagIds = { 10, 26, 21, 18, 5, 11, 4, 8}; 
 
     // PID gains for turning to face the tag using yaw error
     public static final double kAimKp = 3;
@@ -64,7 +64,7 @@ public final class Constants {
     
 
     // Aiming-only yaw trim (deg). + means pretend target is more to the right.
-    public static final double kAimYawOffsetDeg = -6.0;
+    public static final double kAimYawOffsetDeg = -12.0;
 
     // =========================
     // Aim Assist: RANGE HOLD (teleop)

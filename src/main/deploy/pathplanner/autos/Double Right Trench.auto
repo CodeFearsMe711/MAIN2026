@@ -63,7 +63,7 @@
                       }
                     },
                     {
-                      "type": "race",
+                      "type": "parallel",
                       "data": {
                         "commands": [
                           {
@@ -71,21 +71,28 @@
                             "data": {
                               "commands": [
                                 {
-                                  "type": "named",
+                                  "type": "race",
                                   "data": {
-                                    "name": "agitater"
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Shooter feed"
-                                  }
-                                },
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 2.0
+                                    "commands": [
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "agitater"
+                                        }
+                                      },
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "Shooter feed"
+                                        }
+                                      },
+                                      {
+                                        "type": "wait",
+                                        "data": {
+                                          "waitTime": 2.0
+                                        }
+                                      }
+                                    ]
                                   }
                                 },
                                 {

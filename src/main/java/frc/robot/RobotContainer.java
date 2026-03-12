@@ -284,17 +284,17 @@ public class RobotContainer {
             () -> m_intakeSubsystem.stop(),
             m_intakeSubsystem));
 
-    SmartDashboard.putNumber("ShooterLowPresetRPS", 35.0);
-    SmartDashboard.putNumber("ShooterFastPresetRPS", 55.0);
+    SmartDashboard.putNumber("ShooterLowPresetRPS", 75.0);
+    SmartDashboard.putNumber("ShooterFastPresetRPS", 100.0);
 
     m_driverController.a().whileTrue(
         Commands.runEnd(
-            () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterLowPresetRPS", 35.0)),
+            () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterLowPresetRPS", 75.0)),
             () -> m_shootersubsystem.clearManualRPS()));
 
     m_driverController.y().whileTrue(
         Commands.runEnd(
-            () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterFastPresetRPS", 55.0)),
+            () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterFastPresetRPS",100.0)),
             () -> m_shootersubsystem.clearManualRPS()));
 
     SmartDashboard.putNumber("Shooter/FeedRPS", 35);
