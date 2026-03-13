@@ -54,35 +54,41 @@ public class AimHubTagOverride extends Command {
       return;
     }
 
-    var bestAllowed =
-        AimAssistMath.findBestAllowedTarget(
-            result.getTargets(),
-            VisionConstants.kAimTagIds);
+    var bestAimTarget =
+    AimAssistMath.findBestAllowedTarget(
+        result.getTargets(),
+        VisionConstants.kAimTagIds);
 
-    if (bestAllowed == null) {
-      SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
-      drivetrain.clearOmegaOverride();
-      pid.reset();
-      lastOmega = 0.0;
-      return;
-    }
+var bestShooterTarget =
+    AimAssistMath.findBestAllowedTarget(
+        result.getTargets(),
+        VisionConstants.kShooterTagIds);
 
-    SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
+    if (bestAimTarget == null) {
+  SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
+  drivetrain.clearOmegaOverride();
+  pid.reset();
+  lastOmega = 0.0;
+  return;
+}
 
-    double area = bestAllowed.getArea();
-    double yawDeg = bestAllowed.getYaw();
+SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
 
-    double shooterSpeed = ShooterMath.tagAreaToShooterRps(area);
+if (bestShooterTarget != null) {
+  double area = bestShooterTarget.getArea();
+  double shooterSpeed = ShooterMath.tagAreaToShooterRps(area);
 
-    SmartDashboard.putNumber("AutoAimArea", area);
-    SmartDashboard.putNumber("AutoAimYawDeg", yawDeg);
-    SmartDashboard.putNumber("AutoAimShooterTargetRPS", shooterSpeed);
+  SmartDashboard.putNumber("AutoAimArea", area);
+  SmartDashboard.putNumber("AutoAimShooterTargetRPS", shooterSpeed);
 
-    shooter.updateVisionSpeed(shooterSpeed);
+  shooter.updateVisionSpeed(shooterSpeed);
+}
 
-    ChassisSpeeds speeds = drivetrain.getRobotRelativeSpeeds();
-    var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, speeds);
+double yawDeg = bestAimTarget.getYaw();
+SmartDashboard.putNumber("AutoAimYawDeg", yawDeg);
 
+ChassisSpeeds speeds = drivetrain.getRobotRelativeSpeeds();
+var yawOpt = AimAssistMath.getCorrectedYawRad(bestAimTarget, speeds);
     if (yawOpt.isEmpty()) {
       drivetrain.clearOmegaOverride();
       pid.reset();

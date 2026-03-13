@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.909525641025642,
-        "y": 1.639589743589744
+        "x": 8.060692307692308,
+        "y": 1.0000384615384619
       },
       "isLocked": false,
       "linkedName": "16.1"
     },
     {
       "anchor": {
-        "x": 4.2466410256410265,
-        "y": 0.558166666666666
+        "x": 3.1652179487179497,
+        "y": 0.6628205128205127
       },
       "prevControl": {
-        "x": 7.24671794871795,
-        "y": 0.3721153846153845
+        "x": 6.165294871794873,
+        "y": 0.47676923076923117
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,8 +30,12 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7,
-      "rotationDegrees": 8.598812360218167
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 0.9532908704883227,
+      "rotationDegrees": 0.0
     }
   ],
   "constraintZones": [],
@@ -47,7 +51,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 84.42780219603625
+    "rotation": 72.4744316262771
   },
   "reversed": false,
   "folder": "Double Right Trench",

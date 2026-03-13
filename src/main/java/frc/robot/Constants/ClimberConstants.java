@@ -7,8 +7,11 @@ public final class ClimberConstants {
   public static final String kCanBus = "rio";
 
   // DIO ports on the roboRIO
-  public static final int kLeftBottomLimitDio = 9;
-  public static final int kRightBottomLimitDio = 8;
+public static final int kLeftBottomLimitAnalogPort = 1;
+  public static final int kRightBottomLimitAnalogPort = 0;
+  public static final double kBottomLimitPressedThresholdVolts = 2.5;
+public static final boolean kPressedWhenVoltageAboveThreshold = true;
+
 
   // Most FRC limit switches wired to DIO are active-low:
   // pressed = false from .get()
@@ -20,8 +23,8 @@ public final class ClimberConstants {
   public static final double kMinDeg = 0.0;
   public static final double kMaxDeg = 1500.0;
 
-  public static final double kManualUpOutput = 0.1;
-  public static final double kManualDownOutput = 0.1;
+  public static final double kManualUpOutput = 0.5;
+  public static final double kManualDownOutput = 0.5;
 
   public static final double kNearZeroSlowZoneDeg = 50.0;
   public static final double kNearZeroSlowScale = 0.3;

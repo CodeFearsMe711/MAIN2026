@@ -390,30 +390,39 @@ m_driverController.leftBumper().whileTrue(
             return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
           }
 
-          var bestAllowed =
+          // TARGET USED FOR AIMING
+          var bestAimTarget =
               AimAssistMath.findBestAllowedTarget(
                   result.getTargets(),
                   VisionConstants.kAimTagIds);
 
-          if (bestAllowed == null) {
+          // TARGET USED FOR SHOOTER SPEED
+          var bestShooterTarget =
+              AimAssistMath.findBestAllowedTarget(
+                  result.getTargets(),
+                  VisionConstants.kShooterTagIds);
+
+          if (bestAimTarget == null) {
             SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
             return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
           }
 
           SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
 
-          // SHOOTER SPEED FROM TAG AREA
-          double area = bestAllowed.getArea();
-          double shooterRps = ShooterMath.tagAreaToShooterRps(area);
+          // SHOOTER SPEED FROM SHOOTER TAG IDS
+          if (bestShooterTarget != null) {
+            double area = bestShooterTarget.getArea();
+            double shooterRps = ShooterMath.tagAreaToShooterRps(area);
 
-          SmartDashboard.putNumber("AutoAimArea", area);
-          SmartDashboard.putNumber("AutoAimShooterTargetRPS", shooterRps);
+            SmartDashboard.putNumber("AutoAimArea", area);
+            SmartDashboard.putNumber("AutoAimShooterTargetRPS", shooterRps);
 
-          m_shootersubsystem.updateVisionSpeed(shooterRps);
+            m_shootersubsystem.updateVisionSpeed(shooterRps);
+          }
 
-          // AIMING FROM TAG YAW
+          // AIMING FROM AIM TAG IDS
           var robotSpeeds = drivetrain.getRobotRelativeSpeeds();
-          var yawOpt = AimAssistMath.getCorrectedYawRad(bestAllowed, robotSpeeds);
+          var yawOpt = AimAssistMath.getCorrectedYawRad(bestAimTarget, robotSpeeds);
 
           if (yawOpt.isPresent()) {
             double yawErrRad = yawOpt.get();
