@@ -39,6 +39,9 @@ public class ClimberSubsystem extends SubsystemBase {
   private double holdMotorRotations = 0.0;
   private double targetMotorRotations = 0.0;
 
+  private boolean lastLeftBottomPressed = false;
+  private boolean lastRightBottomPressed = false;
+
   public ClimberSubsystem() {
     leftMotor.setNeutralMode(NeutralModeValue.Brake);
     rightMotor.setNeutralMode(NeutralModeValue.Brake);
@@ -57,9 +60,9 @@ public class ClimberSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     updateBottomZeroing();
-     SmartDashboard.putNumber("Climber LeftBottomVoltage", leftBottomLimit.getVoltage());
-  SmartDashboard.putNumber("Climber RightBottomVoltage", rightBottomLimit.getVoltage());
 
+    SmartDashboard.putNumber("Climber LeftBottomVoltage", leftBottomLimit.getVoltage());
+    SmartDashboard.putNumber("Climber RightBottomVoltage", rightBottomLimit.getVoltage());
 
     SmartDashboard.putNumber("Climber/Degrees", getDegrees());
     SmartDashboard.putNumber("ClimberLeftDegrees", getLeftDegrees());
@@ -95,7 +98,6 @@ public class ClimberSubsystem extends SubsystemBase {
       if (movingDown) {
         if (isLeftBottomPressed()) {
           leftMotor.stopMotor();
-          leftMotor.setPosition(0.0);
         } else {
           leftMotor.setControl(
               positionRequest.withPosition(kLeftMotorSign * targetMotorRotations));
@@ -103,7 +105,6 @@ public class ClimberSubsystem extends SubsystemBase {
 
         if (isRightBottomPressed()) {
           rightMotor.stopMotor();
-          rightMotor.setPosition(0.0);
         } else {
           rightMotor.setControl(
               positionRequest.withPosition(kRightMotorSign * targetMotorRotations));
@@ -127,7 +128,6 @@ public class ClimberSubsystem extends SubsystemBase {
 
       if (isLeftBottomPressed()) {
         leftMotor.stopMotor();
-        leftMotor.setPosition(0.0);
       } else {
         leftMotor.setControl(
             holdRequest.withPosition(kLeftMotorSign * holdMotorRotations));
@@ -135,7 +135,6 @@ public class ClimberSubsystem extends SubsystemBase {
 
       if (isRightBottomPressed()) {
         rightMotor.stopMotor();
-        rightMotor.setPosition(0.0);
       } else {
         rightMotor.setControl(
             holdRequest.withPosition(kRightMotorSign * holdMotorRotations));
@@ -149,13 +148,25 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   private void updateBottomZeroing() {
-    if (isLeftBottomPressed()) {
+    boolean leftPressed = isLeftBottomPressed();
+    boolean rightPressed = isRightBottomPressed();
+
+    double leftRotations = getLeftMotorRotations();
+    double rightRotations = getRightMotorRotations();
+
+    boolean leftJustPressed = leftPressed && !lastLeftBottomPressed;
+    boolean rightJustPressed = rightPressed && !lastRightBottomPressed;
+
+    if (leftJustPressed && leftRotations > 0.0) {
       leftMotor.setPosition(0.0);
     }
 
-    if (isRightBottomPressed()) {
+    if (rightJustPressed && rightRotations > 0.0) {
       rightMotor.setPosition(0.0);
     }
+
+    lastLeftBottomPressed = leftPressed;
+    lastRightBottomPressed = rightPressed;
   }
 
   public double getLeftBottomVoltage() {
@@ -209,14 +220,12 @@ public class ClimberSubsystem extends SubsystemBase {
 
     if (isLeftBottomPressed()) {
       leftMotor.stopMotor();
-      leftMotor.setPosition(0.0);
     } else {
       leftMotor.setControl(manualRequest.withOutput(kLeftMotorSign * -output));
     }
 
     if (isRightBottomPressed()) {
       rightMotor.stopMotor();
-      rightMotor.setPosition(0.0);
     } else {
       rightMotor.setControl(manualRequest.withOutput(kRightMotorSign * -output));
     }
