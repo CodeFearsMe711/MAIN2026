@@ -11,25 +11,27 @@ public class NamedShooter extends Command {
   private final ShooterSubsystem shooter;
   private final PhotonVisionSubsytem vision;
 
-  private double lastTargetRPS = 65.0;
+  private static final double FALLBACK_RPS = 65.0; // <-- change this number
 
   public NamedShooter(ShooterSubsystem shooter, PhotonVisionSubsytem vision) {
     this.shooter = shooter;
     this.vision = vision;
+
     addRequirements(shooter);
   }
 
   @Override
   public void initialize() {
     shooter.setVisionEnabled(true);
-    shooter.updateVisionSpeed(lastTargetRPS);
+    shooter.updateVisionSpeed(FALLBACK_RPS);
   }
 
   @Override
   public void execute() {
     var result = vision.getLatestResult();
+
     if (!result.hasTargets()) {
-      shooter.updateVisionSpeed(lastTargetRPS);
+      shooter.updateVisionSpeed(FALLBACK_RPS);
       return;
     }
 
@@ -39,14 +41,13 @@ public class NamedShooter extends Command {
             VisionConstants.kShooterTagIds);
 
     if (bestAllowed == null) {
-      shooter.updateVisionSpeed(lastTargetRPS);
+      shooter.updateVisionSpeed(FALLBACK_RPS);
       return;
     }
 
     double area = bestAllowed.getArea();
     double targetRPS = ShooterMath.tagAreaToShooterRps(area);
 
-    lastTargetRPS = targetRPS;
     shooter.updateVisionSpeed(targetRPS);
   }
 

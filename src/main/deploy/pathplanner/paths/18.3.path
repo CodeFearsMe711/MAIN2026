@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.3847212336892056,
-        "y": 5.503629893238434
+        "x": 2.444269230763417,
+        "y": 5.755974358980174
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.107076923076924,
-        "y": 3.8373205128205132
+        "x": 2.979166666666668,
+        "y": 4.255935897435898
       },
       "isLocked": false,
-      "linkedName": "9.4"
+      "linkedName": "18.2"
     },
     {
       "anchor": {
-        "x": 1.4093589743589754,
-        "y": 4.000115384615385
+        "x": 1.4209871794871811,
+        "y": 4.046628205128206
       },
       "prevControl": {
-        "x": 2.5489230769230784,
-        "y": 4.035
+        "x": 2.537294871794873,
+        "y": 3.965230769230769
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "9.5"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -45,10 +45,10 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Left Climb EMBO",
+  "folder": "Tater Tot SUPREME",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -34.87532834460203
+    "rotation": -36.86989764584394
   },
   "useDefaultConstraints": false
 }

@@ -23,8 +23,8 @@ public static final boolean kPressedWhenVoltageAboveThreshold = true;
   public static final double kMinDeg = 0.0;
   public static final double kMaxDeg = 1500.0;
 
-  public static final double kManualUpOutput = 0.5;
-  public static final double kManualDownOutput = 0.5;
+  public static final double kManualUpOutput = 1;
+  public static final double kManualDownOutput = .75;
 
   public static final double kNearZeroSlowZoneDeg = 50.0;
   public static final double kNearZeroSlowScale = 0.3;
