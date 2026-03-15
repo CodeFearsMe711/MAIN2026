@@ -2,33 +2,32 @@ package frc.robot.commands.NamedCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Intake.IntakeSubsystem;
-import frc.robot.commands.Intake.IntakeCommand;
 
 public class NamedIntake extends Command {
-
-  private final IntakeCommand intakeCommand;
+  private final IntakeSubsystem intake;
 
   public NamedIntake(IntakeSubsystem intake) {
-    intakeCommand = new IntakeCommand(intake, 35.0);
+    this.intake = intake;
+    addRequirements(intake);
   }
 
   @Override
   public void initialize() {
-    intakeCommand.initialize();
+    intake.setRPS(35.0);
   }
 
   @Override
   public void execute() {
-    intakeCommand.execute();
+    intake.setRPS(35.0);
   }
 
   @Override
   public void end(boolean interrupted) {
-    intakeCommand.end(interrupted);
+    intake.stop();
   }
 
   @Override
   public boolean isFinished() {
-    return intakeCommand.isFinished();
+    return false;
   }
 }

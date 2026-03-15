@@ -72,6 +72,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     BaseStatusSignal.refreshAll(positionSignal, velocitySignal);
+    
+SmartDashboard.putNumber("ArmStatorCurrent", motor.getStatorCurrent().getValueAsDouble());
+  SmartDashboard.putNumber("ArmSupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
+  SmartDashboard.putNumber("ArmMotorVoltage", motor.getMotorVoltage().getValueAsDouble());
+  SmartDashboard.putNumber("ArmSupplyVoltage", motor.getSupplyVoltage().getValueAsDouble());
 
     double currentDeg = getDegrees();
 

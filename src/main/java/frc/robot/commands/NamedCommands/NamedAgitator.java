@@ -2,33 +2,32 @@ package frc.robot.commands.NamedCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Agitator.AgitatorSubsystem;
-import frc.robot.commands.Agitator.AgitatorCommand;
 
 public class NamedAgitator extends Command {
-
-  private final AgitatorCommand agitatorCommand;
+  private final AgitatorSubsystem agitator;
 
   public NamedAgitator(AgitatorSubsystem agitator) {
-    agitatorCommand = new AgitatorCommand(agitator, 30.0);
+    this.agitator = agitator;
+    addRequirements(agitator);
   }
 
   @Override
   public void initialize() {
-    agitatorCommand.initialize();
+    agitator.setRPS(30.0);
   }
 
   @Override
   public void execute() {
-    agitatorCommand.execute();
+    agitator.setRPS(30.0);
   }
 
   @Override
   public void end(boolean interrupted) {
-    agitatorCommand.end(interrupted);
+    agitator.stop();
   }
 
   @Override
   public boolean isFinished() {
-    return agitatorCommand.isFinished();
+    return false;
   }
 }

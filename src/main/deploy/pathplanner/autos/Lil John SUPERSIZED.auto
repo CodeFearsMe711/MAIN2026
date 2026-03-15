@@ -60,13 +60,13 @@
                                 {
                                   "type": "named",
                                   "data": {
-                                    "name": "agitater"
+                                    "name": "Shooter feed"
                                   }
                                 },
                                 {
                                   "type": "named",
                                   "data": {
-                                    "name": "Shooter feed"
+                                    "name": "agitater"
                                   }
                                 },
                                 {
@@ -103,6 +103,12 @@
                                 }
                               ]
                             }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "ClimberUp"
+                            }
                           }
                         ]
                       }
@@ -115,12 +121,6 @@
                             "type": "path",
                             "data": {
                               "pathName": "17.3"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "ClimberUp"
                             }
                           }
                         ]

@@ -2,33 +2,32 @@ package frc.robot.commands.NamedCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter.ShooterFeederSubsytem;
-import frc.robot.commands.Shooter.ShooterFeederCommand;
 
 public class NamedShooterFeed extends Command {
-
-  private final ShooterFeederCommand feedCommand;
+  private final ShooterFeederSubsytem feeder;
 
   public NamedShooterFeed(ShooterFeederSubsytem feeder) {
-    feedCommand = new ShooterFeederCommand(feeder, 40.0);
+    this.feeder = feeder;
+    addRequirements(feeder);
   }
 
   @Override
   public void initialize() {
-    feedCommand.initialize();
+    feeder.setRPS(40.0);
   }
 
   @Override
   public void execute() {
-    feedCommand.execute();
+    feeder.setRPS(40.0);
   }
 
   @Override
   public void end(boolean interrupted) {
-    feedCommand.end(interrupted);
+    feeder.stop();
   }
 
   @Override
   public boolean isFinished() {
-    return feedCommand.isFinished();
+    return false;
   }
 }
