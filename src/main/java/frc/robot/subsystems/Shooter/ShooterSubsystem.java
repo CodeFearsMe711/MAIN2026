@@ -73,8 +73,7 @@ public class ShooterSubsystem extends SubsystemBase {
 public void periodic() {
 
   // PROOF periodic is running
-  SmartDashboard.putBoolean("ZZZ_SHOOTER_PERIODIC", true);
-  SmartDashboard.putNumber("ZZZ_SHOOTER_TIME", Timer.getFPGATimestamp());
+  
 
   double requestedRPS = getRequestedRPS();
 
@@ -82,15 +81,5 @@ public void periodic() {
 
   motor.setControl(voltageOut.withOutput(volts));
 
-  // FORCE shooter values onto dashboard
-  SmartDashboard.putNumber("ShooterRequestedRPS", requestedRPS);
-  SmartDashboard.putNumber("ShooterAppliedVolts", volts);
-  SmartDashboard.putNumber("ShooterMotorRPS", motor.getVelocity().getValueAsDouble());
-
-  SmartDashboard.putBoolean("ShooterVisionEnabled", visionEnabled);
-  SmartDashboard.putBoolean("ShooterManualEnabled", manualEnabled);
-
-  SmartDashboard.putNumber("ShooterManualTargetRPS", manualTargetRPS);
-  SmartDashboard.putNumber("ShooterVisionTargetRPS", visionTargetRPS);
 }
 }

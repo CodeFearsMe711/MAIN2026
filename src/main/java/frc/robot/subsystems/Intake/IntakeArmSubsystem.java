@@ -73,10 +73,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   public void periodic() {
     BaseStatusSignal.refreshAll(positionSignal, velocitySignal);
     
-SmartDashboard.putNumber("ArmStatorCurrent", motor.getStatorCurrent().getValueAsDouble());
-  SmartDashboard.putNumber("ArmSupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
-  SmartDashboard.putNumber("ArmMotorVoltage", motor.getMotorVoltage().getValueAsDouble());
-  SmartDashboard.putNumber("ArmSupplyVoltage", motor.getSupplyVoltage().getValueAsDouble());
+
 
     double currentDeg = getDegrees();
 
@@ -91,11 +88,7 @@ SmartDashboard.putNumber("ArmStatorCurrent", motor.getStatorCurrent().getValueAs
       applyProfiledPosition();
     }
 
-    SmartDashboard.putNumber("ArmGoalDeg", desiredGoalDeg);
-    SmartDashboard.putNumber("ArmProfilePosDeg", profiledSetpointDeg.position);
-    SmartDashboard.putNumber("ArmMeasuredDeg", currentDeg);
-    SmartDashboard.putNumber("ArmErrorDeg", profiledSetpointDeg.position - currentDeg);
-    SmartDashboard.putString("ArmMode", controlMode.toString());
+   
   }
 
   private void applyBaseConfig() {

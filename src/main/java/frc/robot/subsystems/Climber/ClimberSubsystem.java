@@ -61,23 +61,7 @@ public class ClimberSubsystem extends SubsystemBase {
   public void periodic() {
     updateBottomZeroing();
 
-    SmartDashboard.putNumber("Climber LeftBottomVoltage", leftBottomLimit.getVoltage());
-    SmartDashboard.putNumber("Climber RightBottomVoltage", rightBottomLimit.getVoltage());
 
-    SmartDashboard.putNumber("Climber/Degrees", getDegrees());
-    SmartDashboard.putNumber("ClimberLeftDegrees", getLeftDegrees());
-    SmartDashboard.putNumber("ClimberRightDegrees", getRightDegrees());
-
-    SmartDashboard.putNumber("Climber/LeftBottomVoltage", getLeftBottomVoltage());
-    SmartDashboard.putNumber("Climber/RightBottomVoltage", getRightBottomVoltage());
-
-    SmartDashboard.putBoolean("Climber/LeftBottomLimit", isLeftBottomPressed());
-    SmartDashboard.putBoolean("Climber/RightBottomLimit", isRightBottomPressed());
-
-    SmartDashboard.putBoolean("Climber/AtMinLimit", atMinLimit());
-    SmartDashboard.putBoolean("Climber/AtMaxLimit", atMaxLimit());
-    SmartDashboard.putBoolean("Climber/HoldEnabled", holdEnabled);
-    SmartDashboard.putBoolean("Climber/AutoPosition", autoPositionEnabled);
 
     if (autoPositionEnabled) {
       double currentRotations = getMotorRotations();

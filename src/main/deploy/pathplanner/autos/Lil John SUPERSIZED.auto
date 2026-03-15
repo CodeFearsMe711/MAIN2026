@@ -58,18 +58,6 @@
                             "data": {
                               "commands": [
                                 {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Shooter feed"
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "agitater"
-                                  }
-                                },
-                                {
                                   "type": "wait",
                                   "data": {
                                     "waitTime": 5.0
