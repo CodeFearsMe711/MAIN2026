@@ -20,8 +20,8 @@
         "y": 3.97582443653618
       },
       "prevControl": {
-        "x": 3.374567022538554,
-        "y": 3.9543060498220646
+        "x": 3.374749368653122,
+        "y": 3.97582443653618
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -1.023030188667791
   },
   "reversed": false,
   "folder": "Simple Climb",

@@ -29,7 +29,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private final VelocityVoltage velocityRequest = new VelocityVoltage(0.0);
 
   private final StatusSignal<edu.wpi.first.units.measure.Angle> positionSignal = motor.getPosition();
-  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> velocitySignal = motor.getVelocity();
+  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> velocitySignal =
+      motor.getVelocity();
 
   private ControlMode controlMode = ControlMode.POSITION;
 
@@ -39,7 +40,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private double manualArmRps = 0.0;
 
   private double maxProfileVelDegPerSec = armRpsToDegPerSec(IntakeArmConstants.kCruiseRps_Arm);
-  private double maxProfileAccelDegPerSec2 = armRpsToDegPerSec(IntakeArmConstants.kAccelRps2_Arm);
+  private double maxProfileAccelDegPerSec2 = armRpsToDegPerSec2(IntakeArmConstants.kAccelRps2_Arm);
 
   private TrapezoidProfile.Constraints profileConstraints =
       new TrapezoidProfile.Constraints(maxProfileVelDegPerSec, maxProfileAccelDegPerSec2);
@@ -84,6 +85,12 @@ public class IntakeArmSubsystem extends SubsystemBase {
     } else {
       applyProfiledPosition();
     }
+
+    SmartDashboard.putNumber("ArmGoalDeg", desiredGoalDeg);
+    SmartDashboard.putNumber("ArmProfilePosDeg", profiledSetpointDeg.position);
+    SmartDashboard.putNumber("ArmMeasuredDeg", currentDeg);
+    SmartDashboard.putNumber("ArmErrorDeg", profiledSetpointDeg.position - currentDeg);
+    SmartDashboard.putString("ArmMode", controlMode.toString());
   }
 
   private void applyBaseConfig() {

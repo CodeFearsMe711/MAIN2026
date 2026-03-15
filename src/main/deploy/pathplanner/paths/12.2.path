@@ -48,7 +48,7 @@
   "folder": "Simple Climb",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -1.023030188667791
   },
   "useDefaultConstraints": false
 }
