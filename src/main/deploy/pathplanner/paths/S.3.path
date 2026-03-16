@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 0.23288256227758053,
+        "y": 0.43604982206405685
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 0.7045914712448931,
+        "y": 0.9513323493699223
+      },
+      "isLocked": false,
+      "linkedName": "S.2END"
+    },
+    {
+      "anchor": {
+        "x": 2.2233333333333345,
+        "y": 2.4303076923076925
+      },
+      "prevControl": {
+        "x": 1.107626235781272,
+        "y": 1.7366849381698088
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 32.152295141282224
+  },
+  "reversed": false,
+  "folder": "Sammy G Special",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 90.69869438298346
+  },
+  "useDefaultConstraints": true
+}

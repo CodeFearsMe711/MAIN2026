@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.0,
+        "y": 4.3605897435897445
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.3682740018930986,
+        "y": 4.379058736437701
+      },
+      "isLocked": false,
+      "linkedName": "prada"
+    },
+    {
+      "anchor": {
+        "x": 2.3047307692307704,
+        "y": 4.3605897435897445
+      },
+      "prevControl": {
+        "x": 4.0877098839081,
+        "y": 4.35862134466228
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "reversed": false,
+  "folder": "Miscellaneous",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}

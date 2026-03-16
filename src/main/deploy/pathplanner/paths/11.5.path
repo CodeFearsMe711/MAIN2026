@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 0.7493238434163707,
+        "y": 5.944756820877817
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.9434995113986204,
+        "y": 5.167679128296084
+      },
+      "isLocked": false,
+      "linkedName": "11.4"
+    },
+    {
+      "anchor": {
+        "x": 2.2771293001186246,
+        "y": 5.18085409252669
+      },
+      "prevControl": {
+        "x": 1.0628338429866677,
+        "y": 5.856000472696051
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "11.5"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -31.15930450834446
+  },
+  "reversed": false,
+  "folder": "Jabba",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "useDefaultConstraints": true
+}

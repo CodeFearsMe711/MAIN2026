@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 0.5771767497034408,
+        "y": 5.976910256410256
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.7332290658583933,
+        "y": 4.811209806091417
+      },
+      "isLocked": false,
+      "linkedName": "9.3"
+    },
+    {
+      "anchor": {
+        "x": 2.3847212336892056,
+        "y": 5.503629893238434
+      },
+      "prevControl": {
+        "x": 1.8319926388798387,
+        "y": 5.940874284421911
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "9.4"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -34.87532834460203
+  },
+  "reversed": false,
+  "folder": "Left Climb EMBO",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -177.3574547059353
+  },
+  "useDefaultConstraints": true
+}

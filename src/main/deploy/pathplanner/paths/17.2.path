@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 0.23491025641025798,
+        "y": 0.47676923076923117
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 0.46627780835639737,
+        "y": 0.5714743304547839
+      },
+      "isLocked": false,
+      "linkedName": "17.1"
+    },
+    {
+      "anchor": {
+        "x": 2.4492763938315547,
+        "y": 3.588493475682087
+      },
+      "prevControl": {
+        "x": 2.251251626298204,
+        "y": 3.4358953385920086
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "17.2"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 5.57219780396379
+  },
+  "reversed": false,
+  "folder": "Lil John SUPERSIZED",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 90.0
+  },
+  "useDefaultConstraints": true
+}

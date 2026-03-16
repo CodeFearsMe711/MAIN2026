@@ -1,0 +1,59 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.723474358974359,
+        "y": 4.976884615384615
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 9.107230769224955,
+        "y": 7.151358974364789
+      },
+      "isLocked": false,
+      "linkedName": "18.1"
+    },
+    {
+      "anchor": {
+        "x": 2.444269230763417,
+        "y": 5.755974358980174
+      },
+      "prevControl": {
+        "x": 1.9326282051223913,
+        "y": 8.918846153851968
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "18.2"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.6843881856540117,
+      "rotationDegrees": 0.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -36.86989764584394
+  },
+  "reversed": false,
+  "folder": "Tater Tot SUPREME",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -90.0
+  },
+  "useDefaultConstraints": true
+}

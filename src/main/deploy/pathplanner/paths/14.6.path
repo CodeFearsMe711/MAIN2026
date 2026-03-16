@@ -1,0 +1,59 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.630448717948719,
+        "y": 5.0233974358974365
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.711846153846155,
+        "y": 7.907192307692307
+      },
+      "isLocked": false,
+      "linkedName": "14.5 END"
+    },
+    {
+      "anchor": {
+        "x": 2.6303205128205143,
+        "y": 6.883910256410257
+      },
+      "prevControl": {
+        "x": 3.921051282051284,
+        "y": 7.849051282051283
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "14.6"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.7,
+      "rotationDegrees": 179.86070745550802
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 540.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -67.69379494509234
+  },
+  "reversed": false,
+  "folder": "Triple Intake and Shoot",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -66.25050550713325
+  },
+  "useDefaultConstraints": true
+}
