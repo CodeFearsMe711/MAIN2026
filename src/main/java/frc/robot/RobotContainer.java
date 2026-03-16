@@ -86,8 +86,8 @@ public class RobotContainer {
   private final IntakeArmCommand m_intakeArmCommand =
       new IntakeArmCommand(m_intakeArmSubsystem, 90.0);
 
-  @SuppressWarnings("unused")
-  private final ConnectorXLeds m_lumenLights = new ConnectorXLeds();
+  //@SuppressWarnings("unused")
+  //private final ConnectorXLeds m_lumenLights = new ConnectorXLeds();
 
   @SuppressWarnings("unused")
   private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();
@@ -101,9 +101,9 @@ public class RobotContainer {
 
   private final PhotonVisionSubsytem m_photonVision = new PhotonVisionSubsytem();
 
-  @SuppressWarnings("unused")
-  private final org.photonvision.PhotonCamera m_aimCam =
-      new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
+  // @SuppressWarnings("unused")
+  // private final org.photonvision.PhotonCamera m_aimCam =
+  //     new org.photonvision.PhotonCamera(VisionConstants.kCameraName);
 
   private final edu.wpi.first.math.controller.PIDController m_aimPid =
       new edu.wpi.first.math.controller.PIDController(6.0, 0.0, 0.0);
@@ -275,7 +275,7 @@ public class RobotContainer {
     m_driverController.back().and(m_driverController.leftBumper())
         .onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
-    drivetrain.registerTelemetry(logger::telemeterize);
+    //drivetrain.registerTelemetry(logger::telemeterize);
 
     SmartDashboard.putNumber("Intake/TargetRPS", 40);
     c_driverController.rightBumper().whileTrue(

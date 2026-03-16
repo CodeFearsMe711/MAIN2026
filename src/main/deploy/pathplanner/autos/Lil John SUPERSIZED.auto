@@ -58,6 +58,18 @@
                             "data": {
                               "commands": [
                                 {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "Shooter feed"
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "agitater"
+                                  }
+                                },
+                                {
                                   "type": "wait",
                                   "data": {
                                     "waitTime": 5.0
@@ -93,25 +105,31 @@
                             }
                           },
                           {
-                            "type": "named",
+                            "type": "sequential",
                             "data": {
-                              "name": "ClimberUp"
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 1.0
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "ClimberUp"
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
                       }
                     },
                     {
-                      "type": "parallel",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "17.3"
-                            }
-                          }
-                        ]
+                        "pathName": "17.3"
                       }
                     },
                     {

@@ -78,11 +78,11 @@ public class Robot extends TimedRobot {
     // Boot-only zero: happens before any commands/autos run
     m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
 
-UsbCamera camera = CameraServer.startAutomaticCapture(0);
-camera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
-camera.setPixelFormat(PixelFormat.kYUYV);
-camera.setResolution(320, 240);
-camera.setFPS(20);
+//UsbCamera camera = CameraServer.startAutomaticCapture(0);
+//camera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
+//camera.setPixelFormat(PixelFormat.kYUYV);
+//camera.setResolution(320, 240);
+//camera.setFPS(20);
 }
   // Robot.java
 

@@ -218,7 +218,7 @@ public void periodic() {
         m_hasAppliedOperatorPerspective = true;
     }
 
-    publishOdometryToDashboard();
+    //publishOdometryToDashboard();
 }
     
 
