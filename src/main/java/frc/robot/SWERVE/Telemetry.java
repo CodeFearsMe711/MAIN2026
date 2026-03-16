@@ -30,7 +30,7 @@ public class Telemetry {
      */
     public Telemetry(double maxSpeed) {
         MaxSpeed = maxSpeed;
-        //SignalLogger.start();
+        SignalLogger.start();
 
         /* Set up the module state Mechanism2d telemetry */
         for (int i = 0; i < 4; ++i) {
@@ -84,9 +84,9 @@ public class Telemetry {
 
     private final double[] m_poseArray = new double[3];
 
-    /** Accept the swerve drive state and telemeterize it to SmartDashboard and SignalLogger. 
-    /*public void telemeterize(SwerveDriveState state) {
-        /* Telemeterize the swerve drive state 
+     //Accept the swerve drive state and telemeterize it to SmartDashboard and SignalLogger. 
+    public void telemeterize(SwerveDriveState state) {
+        // Telemeterize the swerve drive state 
         drivePose.set(state.Pose);
         driveSpeeds.set(state.Speeds);
         driveModuleStates.set(state.ModuleStates);
@@ -95,7 +95,7 @@ public class Telemetry {
         driveTimestamp.set(state.Timestamp);
         driveOdometryFrequency.set(1.0 / state.OdometryPeriod);
 
-        /* Also write to log file 
+        // Also write to log file 
         SignalLogger.writeStruct("DriveState/Pose", Pose2d.struct, state.Pose);
         SignalLogger.writeStruct("DriveState/Speeds", ChassisSpeeds.struct, state.Speeds);
         SignalLogger.writeStructArray("DriveState/ModuleStates", SwerveModuleState.struct, state.ModuleStates);
@@ -103,7 +103,7 @@ public class Telemetry {
         SignalLogger.writeStructArray("DriveState/ModulePositions", SwerveModulePosition.struct, state.ModulePositions);
         SignalLogger.writeDouble("DriveState/OdometryPeriod", state.OdometryPeriod, "seconds");
 
-        /* Telemeterize the pose to a Field2d 
+        // Telemeterize the pose to a Field2d 
         fieldTypePub.set("Field2d");
 
         m_poseArray[0] = state.Pose.getX();
@@ -111,11 +111,11 @@ public class Telemetry {
         m_poseArray[2] = state.Pose.getRotation().getDegrees();
         fieldPub.set(m_poseArray);
 
-        /* Telemeterize each module state to a Mechanism2d 
+        // Telemeterize each module state to a Mechanism2d 
         for (int i = 0; i < 4; ++i) {
             m_moduleSpeeds[i].setAngle(state.ModuleStates[i].angle);
             m_moduleDirections[i].setAngle(state.ModuleStates[i].angle);
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
         }
-    }*/
+    }
 }

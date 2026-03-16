@@ -275,7 +275,7 @@ public class RobotContainer {
     m_driverController.back().and(m_driverController.leftBumper())
         .onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
-    //drivetrain.registerTelemetry(logger::telemeterize);
+    drivetrain.registerTelemetry(logger::telemeterize);
 
     SmartDashboard.putNumber("Intake/TargetRPS", 40);
     c_driverController.rightBumper().whileTrue(
