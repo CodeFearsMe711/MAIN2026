@@ -26,8 +26,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
-import org.littletonrobotics.junction.Logger;
-
 import frc.robot.Constants.Constants.OperatorConstants;
 import frc.robot.Constants.Constants.VisionConstants;
 import frc.robot.Constants.IntakeArmConstants;
@@ -365,6 +363,10 @@ public class RobotContainer {
             m_ClimberSubsystem,
             ManualClimberCommand.ClimberDirection.DOWN));
 
+            m_driverController.start().onTrue(
+              drivetrain.runOnce(drivetrain::seedFieldCentric)
+            );
+
    // =========================
    // AIM ASSIST + AUTO SHOOT SPEED
    // =========================
@@ -518,44 +520,6 @@ m_driverController.leftBumper().onFalse(
   public void publishMatchHubStatus() {
   }
 
-
-  public void logAdvantageKit() {
-    var driveState = drivetrain.getState();
-    Logger.recordOutput("Drive/Pose", driveState.Pose);
-    Logger.recordOutput("Drive/ModuleStates", driveState.ModuleStates);
-    Logger.recordOutput("Drive/ModuleTargets", driveState.ModuleTargets);
-    Logger.recordOutput("Drive/ModulePositions", driveState.ModulePositions);
-    Logger.recordOutput("Drive/OdometryPeriodSec", driveState.OdometryPeriod);
-
-    Logger.recordOutput("IntakeArm/Degrees", m_intakeArmSubsystem.getDegrees());
-
-    Logger.recordOutput("Climber/Degrees", m_ClimberSubsystem.getDegrees());
-    Logger.recordOutput("Climber/LeftDegrees", m_ClimberSubsystem.getLeftDegrees());
-    Logger.recordOutput("Climber/RightDegrees", m_ClimberSubsystem.getRightDegrees());
-    Logger.recordOutput("Climber/LeftBottomPressed", m_ClimberSubsystem.isLeftBottomPressed());
-    Logger.recordOutput("Climber/RightBottomPressed", m_ClimberSubsystem.isRightBottomPressed());
-    Logger.recordOutput("Climber/LeftBottomVoltage", m_ClimberSubsystem.getLeftBottomVoltage());
-    Logger.recordOutput("Climber/RightBottomVoltage", m_ClimberSubsystem.getRightBottomVoltage());
-
-    Logger.recordOutput("Shooter/MotorRPS", m_shootersubsystem.getMotorRPS());
-
-    var visionResult = m_photonVision.getLatestResult();
-    Logger.recordOutput("Vision/HasTargets", visionResult.hasTargets());
-
-    if (visionResult.hasTargets()) {
-      var bestTarget = visionResult.getBestTarget();
-      Logger.recordOutput("Vision/BestTarget/Id", bestTarget.getFiducialId());
-      Logger.recordOutput("Vision/BestTarget/YawDeg", bestTarget.getYaw());
-      Logger.recordOutput("Vision/BestTarget/PitchDeg", bestTarget.getPitch());
-      Logger.recordOutput("Vision/BestTarget/Area", bestTarget.getArea());
-    } else {
-      Logger.recordOutput("Vision/BestTarget/Id", -1);
-      Logger.recordOutput("Vision/BestTarget/YawDeg", 0.0);
-      Logger.recordOutput("Vision/BestTarget/PitchDeg", 0.0);
-      Logger.recordOutput("Vision/BestTarget/Area", 0.0);
-    }
-  }
-
   public Command getAutonomousCommand() {
     return m_autoChooser.getSelected();
   }
@@ -616,4 +580,5 @@ m_driverController.leftBumper().onFalse(
             },
             m_intakeArmSubsystem));
   }
+ 
 }

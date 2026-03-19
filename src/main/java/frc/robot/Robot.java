@@ -2,26 +2,31 @@ package frc.robot;
 
 import com.ctre.phoenix6.HootAutoReplay;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.lang.reflect.Method;
-
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.LEDS.LumenLightsSubsystem;
 
-public class Robot extends LoggedRobot {
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
+import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.commands.Intake.IntakeArmEnableDropCommand;
+
+import frc.robot.subsystems.LEDS.ConnectorXLeds;
+
+public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private LumenLightsSubsystem leds;
   private final RobotContainer m_robotContainer;
 
-  @SuppressWarnings("unused")
   private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
       .withTimestampReplay()
       .withJoystickReplay();
@@ -32,20 +37,9 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotInit() {
-    Logger.recordMetadata("ProjectName", "MAIN2026-Post-Great-Northern");
-    Logger.recordMetadata("Robot", "Competition");
-
-    if (isReal()) {
-      Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
-      Logger.addDataReceiver(new NT4Publisher());
-    } else {
-      Logger.addDataReceiver(new WPILOGWriter(""));
-      Logger.addDataReceiver(new NT4Publisher());
-    }
-
-    Logger.start();
-
+    // Try to reuse a lights instance from RobotContainer if it provides one, otherwise construct.
     try {
+      // Reflection: if RobotContainer has getLumenLightsSubsystem(), use it.
       try {
         Method m = m_robotContainer.getClass().getMethod("getLumenLightsSubsystem");
         Object obj = m.invoke(m_robotContainer);
@@ -53,18 +47,21 @@ public class Robot extends LoggedRobot {
           leds = (LumenLightsSubsystem) obj;
         }
       } catch (NoSuchMethodException nsme) {
-        // RobotContainer does not expose lights in this build.
+        // RobotContainer doesn't expose lights; we'll construct our own below.
       }
+
 
       if (leds == null) {
         leds = new LumenLightsSubsystem();
       }
+
 
       if (leds != null && leds.isInitialized()) {
         leds.setAllRGB(255, 0, 0);
         SmartDashboard.putString("LED Status", "OK - set red (port " + leds.getActivePort() + ")");
       } else if (leds != null) {
         SmartDashboard.putString("LED Status", leds.getStatus());
+        // If we failed to init, log the scan result (if any) to DriverStation for immediate visibility
         String scan = leds.getLastScanResult();
         if (scan != null && !scan.isEmpty()) {
           DriverStation.reportWarning("LED init failed; auto-probe:\n" + scan, false);
@@ -78,38 +75,53 @@ public class Robot extends LoggedRobot {
       SmartDashboard.putString("LED Status", "Init error: " + e.getMessage());
     }
 
+    // Boot-only zero: happens before any commands/autos run
     m_robotContainer.getIntakeArmSubsystem().zeroArmPositionOnBoot();
+
+UsbCamera camera = CameraServer.startAutomaticCapture(0);
+camera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
+camera.setPixelFormat(PixelFormat.kYUYV);
+camera.setResolution(320, 240);
+camera.setFPS(20);
+}
+  // Robot.java
+
+private double m_lastDashTime = 0.0;
+private double m_lastHeavyTime = 0.0;
+
+@Override
+public void robotPeriodic() {
+  CommandScheduler.getInstance().run();
+}
+
+ @Override
+public void teleopInit() {
+  if (m_autonomousCommand != null) {
+    m_autonomousCommand.cancel();
+    m_autonomousCommand = null;
   }
 
-  @Override
-  public void robotPeriodic() {
-    CommandScheduler.getInstance().run();
-    m_robotContainer.logAdvantageKit();
-  }
+ CommandScheduler.getInstance().cancelAll();
+ m_robotContainer.getDrivetrain().seedFieldCentric();
+}
 
-  @Override
-  public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
-  }
-
-  @Override
-  public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-      m_autonomousCommand = null;
-    }
-
-    CommandScheduler.getInstance().cancelAll();
-  }
 
   @Override
   public void disabledInit() {
+    // Ensure LEDs are stopped when disabled
     if (leds != null) {
       leds.stop();
     }
   }
+
+
+
+  @Override
+public void autonomousInit() {
+  m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+
+  if (m_autonomousCommand != null) {
+    m_autonomousCommand.schedule();
+  }
+}
 }

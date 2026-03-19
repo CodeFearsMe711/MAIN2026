@@ -20,6 +20,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
@@ -44,6 +46,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kOperatorPerspectiveForward = Rotation2d.kZero;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    private final StructPublisher<Pose2d> posePublisher =
+        NetworkTableInstance.getDefault()
+            .getStructTopic("DriveState/Pose", Pose2d.struct)
+            .publish();
 
     /* =========================
      * PathPlanner helpers
@@ -211,16 +218,31 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return m_sysIdRoutineToApply.dynamic(direction);
     }
 
-   @Override
+    @Override
 public void periodic() {
-    if (!m_hasAppliedOperatorPerspective) {
-        setOperatorPerspectiveForward(Rotation2d.kZero);
-        m_hasAppliedOperatorPerspective = true;
+    if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+        DriverStation.getAlliance().ifPresent(allianceColor -> {
+            setOperatorPerspectiveForward(
+                allianceColor == DriverStation.Alliance.Red
+                    ? Rotation2d.k180deg
+                    : Rotation2d.kZero
+            );
+            m_hasAppliedOperatorPerspective = true;
+        });
     }
 
-    //publishOdometryToDashboard();
+    Pose2d pose = this.getState().Pose;
+    posePublisher.set(pose);
+
+    SmartDashboard.putNumber("AScope/X", pose.getX());
+    SmartDashboard.putNumber("AScope/Y", pose.getY());
+    SmartDashboard.putNumber("AScopeHeadingDeg", this.getState().Pose.getRotation().getDegrees());
+    SmartDashboard.putNumber("AScopeOmegaRadPerSec", this.getState().Speeds.omegaRadiansPerSecond);
+    SmartDashboard.putNumber("AScope/HeadingDeg", pose.getRotation().getDegrees());
+    SmartDashboard.putNumber("PoseHeadingDeg", this.getState().Pose.getRotation().getDegrees());
+    SmartDashboard.putNumber("OmegaRadPerSec", this.getState().Speeds.omegaRadiansPerSecond);
+    SmartDashboard.putNumber("RawPigeonYawDeg", this.getPigeon2().getYaw().getValueAsDouble());
 }
-    
 
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
