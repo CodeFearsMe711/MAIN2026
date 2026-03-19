@@ -18,6 +18,8 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -28,6 +30,11 @@ public class PhotonVisionSubsytem extends SubsystemBase {
   private final PhotonCamera camera;
   private final AprilTagFieldLayout fieldLayout;
   private final PhotonPoseEstimator poseEstimator;
+
+  private final StructPublisher<Pose2d> rawVisionPosePublisher =
+      NetworkTableInstance.getDefault()
+          .getStructTopic("Vision/EstimatedPose", Pose2d.struct)
+          .publish();
 
   public PhotonVisionSubsytem() {
     camera = new PhotonCamera(VisionConstants.kCameraName);
@@ -58,7 +65,6 @@ public class PhotonVisionSubsytem extends SubsystemBase {
   }
 
   public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d referencePose2d) {
-
     DriverStation.getAlliance().ifPresent(alliance -> {
       if (alliance == DriverStation.Alliance.Red) {
         fieldLayout.setOrigin(AprilTagFieldLayout.OriginPosition.kRedAllianceWallRightSide);
@@ -68,7 +74,9 @@ public class PhotonVisionSubsytem extends SubsystemBase {
     });
 
     PhotonPipelineResult result = camera.getLatestResult();
-    if (!result.hasTargets()) return Optional.empty();
+    if (!result.hasTargets()) {
+      return Optional.empty();
+    }
 
     Optional<EstimatedRobotPose> est = poseEstimator.estimateCoprocMultiTagPose(result);
 
@@ -80,17 +88,24 @@ public class PhotonVisionSubsytem extends SubsystemBase {
       est = poseEstimator.estimateLowestAmbiguityPose(result);
     }
 
-    if (est.isEmpty()) return Optional.empty();
+    if (est.isEmpty()) {
+      return Optional.empty();
+    }
 
     EstimatedRobotPose out = est.get();
-    if (!isGoodEstimate(out)) return Optional.empty();
+    if (!isGoodEstimate(out)) {
+      return Optional.empty();
+    }
 
+    rawVisionPosePublisher.set(out.estimatedPose.toPose2d());
     return Optional.of(out);
   }
 
   public Optional<Double> getYawToBestTagRad(int... allowedIds) {
     PhotonPipelineResult result = camera.getLatestResult();
-    if (!result.hasTargets()) return Optional.empty();
+    if (!result.hasTargets()) {
+      return Optional.empty();
+    }
 
     PhotonTrackedTarget best = null;
     double bestAbsYawDeg = 1e9;
@@ -104,7 +119,9 @@ public class PhotonVisionSubsytem extends SubsystemBase {
           break;
         }
       }
-      if (!allowed) continue;
+      if (!allowed) {
+        continue;
+      }
 
       double yawDeg = t.getYaw();
       double abs = Math.abs(yawDeg);
@@ -115,14 +132,19 @@ public class PhotonVisionSubsytem extends SubsystemBase {
       }
     }
 
-    if (best == null) return Optional.empty();
+    if (best == null) {
+      return Optional.empty();
+    }
+
     double correctedYawDeg = best.getYaw() + VisionConstants.kAimYawOffsetDeg;
     return Optional.of(Units.degreesToRadians(correctedYawDeg));
   }
 
   public Optional<Double> getBestAllowedTagDistanceMeters(Pose2d robotPose, int... allowedIds) {
     PhotonPipelineResult result = camera.getLatestResult();
-    if (!result.hasTargets()) return Optional.empty();
+    if (!result.hasTargets()) {
+      return Optional.empty();
+    }
 
     PhotonTrackedTarget best = null;
     double bestAbsYawDeg = Double.POSITIVE_INFINITY;
@@ -137,7 +159,9 @@ public class PhotonVisionSubsytem extends SubsystemBase {
           break;
         }
       }
-      if (!allowed) continue;
+      if (!allowed) {
+        continue;
+      }
 
       double absYaw = Math.abs(t.getYaw());
       if (absYaw < bestAbsYawDeg) {
@@ -146,10 +170,14 @@ public class PhotonVisionSubsytem extends SubsystemBase {
       }
     }
 
-    if (best == null) return Optional.empty();
+    if (best == null) {
+      return Optional.empty();
+    }
 
     Optional<Pose3d> tagPoseOpt = fieldLayout.getTagPose(best.getFiducialId());
-    if (tagPoseOpt.isEmpty()) return Optional.empty();
+    if (tagPoseOpt.isEmpty()) {
+      return Optional.empty();
+    }
 
     Pose2d tagPose2d = tagPoseOpt.get().toPose2d();
     return Optional.of(robotPose.getTranslation().getDistance(tagPose2d.getTranslation()));
@@ -181,15 +209,23 @@ public class PhotonVisionSubsytem extends SubsystemBase {
 
   private boolean isGoodEstimate(EstimatedRobotPose est) {
     List<PhotonTrackedTarget> targets = est.targetsUsed;
-    if (targets.isEmpty()) return false;
+    if (targets.isEmpty()) {
+      return false;
+    }
 
     double avgDist = averageDistanceMeters(targets);
-    if (avgDist > VisionConstants.kMaxTargetDistanceMeters) return false;
+    if (avgDist > VisionConstants.kMaxTargetDistanceMeters) {
+      return false;
+    }
 
     if (targets.size() == 1) {
       double ambiguity = targets.get(0).getPoseAmbiguity();
-      if (ambiguity < 0.0) return false;
-      if (ambiguity > VisionConstants.kMaxPoseAmbiguity) return false;
+      if (ambiguity < 0.0) {
+        return false;
+      }
+      if (ambiguity > VisionConstants.kMaxPoseAmbiguity) {
+        return false;
+      }
     }
 
     return true;
