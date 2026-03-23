@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 9.107230769224955,
-        "y": 7.151358974364789
+        "x": 8.909551282051282,
+        "y": 6.651346153846154
       },
       "isLocked": false,
       "linkedName": "18.1"
     },
     {
       "anchor": {
-        "x": 2.444269230763417,
-        "y": 5.755974358980174
+        "x": 2.2814743589685462,
+        "y": 4.744320512820513
       },
       "prevControl": {
-        "x": 1.9326282051223913,
-        "y": 8.918846153851968
+        "x": 1.4093589743531623,
+        "y": 9.035128205128212
       },
       "nextControl": null,
       "isLocked": false,
@@ -29,6 +29,10 @@
     }
   ],
   "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    },
     {
       "waypointRelativePos": 0.6843881856540117,
       "rotationDegrees": 0.0
@@ -47,7 +51,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -36.86989764584394
+    "rotation": -33.6900675259797
   },
   "reversed": false,
   "folder": "Tater Tot SUPREME",

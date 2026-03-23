@@ -86,8 +86,8 @@ public class RobotContainer {
   private final IntakeArmCommand m_intakeArmCommand =
       new IntakeArmCommand(m_intakeArmSubsystem, 90.0);
 
-  //@SuppressWarnings("unused")
-  //private final ConnectorXLeds m_lumenLights = new ConnectorXLeds();
+  @SuppressWarnings("unused")
+  private final ConnectorXLeds m_lumenLights = new ConnectorXLeds();
 
   @SuppressWarnings("unused")
   private final SmartDashboardSubsytem m_SmartDashboard = new SmartDashboardSubsytem();

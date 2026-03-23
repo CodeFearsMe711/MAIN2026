@@ -10,12 +10,12 @@ public final class IntakeArmConstants {
   public static final double kMotorRotationsPerArmRotation = 45.0;
 
   // Editable setpoints (ARM/OUTPUT degrees)
-  public static final double kPosDegA = -50.0; // DOWN (all the way down)
+  public static final double kPosDegA = -72; // DOWN (all the way down)
   public static final double kPosDegB =  0; // UP
 
   // Motion constraints at ARM/OUTPUT (teleop normal)
-  public static final double kCruiseRps_Arm = .35;
-  public static final double kAccelRps2_Arm = .25;
+  public static final double kCruiseRps_Arm = .5;
+  public static final double kAccelRps2_Arm = .3;
 
   // Enable drop constraints (slow, adjustable)
   public static final double kEnableCruiseRps_Arm = .35;

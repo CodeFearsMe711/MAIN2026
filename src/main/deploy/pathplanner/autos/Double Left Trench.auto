@@ -33,24 +33,24 @@
                             "data": {
                               "name": "IntakeArmDown"
                             }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "race",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "intake"
-                            }
                           },
                           {
-                            "type": "path",
+                            "type": "race",
                             "data": {
-                              "pathName": "13.2"
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.0
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "intake"
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
@@ -124,28 +124,41 @@
                             }
                           },
                           {
-                            "type": "named",
+                            "type": "sequential",
                             "data": {
-                              "name": "IntakeArmDown"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "race",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "13.7"
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 0.25
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "IntakeArmDown"
+                                  }
+                                }
+                              ]
                             }
                           },
                           {
-                            "type": "named",
+                            "type": "race",
                             "data": {
-                              "name": "intake"
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 2.0
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "intake"
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
@@ -158,7 +171,7 @@
                       }
                     },
                     {
-                      "type": "race",
+                      "type": "parallel",
                       "data": {
                         "commands": [
                           {
@@ -166,21 +179,28 @@
                             "data": {
                               "commands": [
                                 {
-                                  "type": "named",
+                                  "type": "race",
                                   "data": {
-                                    "name": "Shooter feed"
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "agitater"
-                                  }
-                                },
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 2.0
+                                    "commands": [
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "Shooter feed"
+                                        }
+                                      },
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "agitater"
+                                        }
+                                      },
+                                      {
+                                        "type": "wait",
+                                        "data": {
+                                          "waitTime": 2.0
+                                        }
+                                      }
+                                    ]
                                   }
                                 },
                                 {
