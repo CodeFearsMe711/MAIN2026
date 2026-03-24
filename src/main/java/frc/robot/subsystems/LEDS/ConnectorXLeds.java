@@ -218,19 +218,19 @@ public class ConnectorXLeds extends SubsystemBase {
     boolean preActive = isPreActiveNow(teleopElapsedSec, allianceOpt, gameData);
     boolean fastPreActive = isFastPreActiveNow(teleopElapsedSec, allianceOpt, gameData);
 
-    SmartDashboard.putBoolean("MatchHub/Active", hubActive);
-    SmartDashboard.putBoolean("MatchHub/PreActive", preActive);
-    SmartDashboard.putBoolean("MatchHub/FastPreActive", fastPreActive);
-    SmartDashboard.putBoolean("MatchHub/FMSAttached", DriverStation.isFMSAttached());
+    SmartDashboard.putBoolean("MatchHubActive", hubActive);
+    SmartDashboard.putBoolean("MatchHubPreActive", preActive);
+    SmartDashboard.putBoolean("MatchHubFastPreActive", fastPreActive);
+    SmartDashboard.putBoolean("MatchHubFMSAttached", DriverStation.isFMSAttached());
     SmartDashboard.putNumber(
         "MatchHub/FMSAttachTimestampSec",
         Double.isNaN(fmsAttachTimestampSec) ? -1.0 : fmsAttachTimestampSec);
     SmartDashboard.putNumber(
         "MatchHub/TeleopElapsedSec",
         Double.isNaN(teleopElapsedSec) ? -1.0 : teleopElapsedSec);
-    SmartDashboard.putBoolean("MatchHub/RedActiveFirst", isRedActiveFirst(gameData));
-    SmartDashboard.putNumber("MatchHub/MatchTime", DriverStation.getMatchTime());
-    SmartDashboard.putString("MatchHub/GameData", gameData);
+    SmartDashboard.putBoolean("MatchHubRedActiveFirst", isRedActiveFirst(gameData));
+    SmartDashboard.putNumber("MatchHubMatchTime", DriverStation.getMatchTime());
+    SmartDashboard.putString("MatchHubGameData", gameData);
     SmartDashboard.putString(
         "MatchHub/Alliance",
         allianceOpt.isPresent() ? allianceOpt.get().name() : "Unknown");
