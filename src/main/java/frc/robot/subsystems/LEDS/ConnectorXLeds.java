@@ -218,11 +218,16 @@ public class ConnectorXLeds extends SubsystemBase {
   }
 
   private double getTeleopElapsedSec() {
-    if (Double.isNaN(teleopStartTimestampSec)) {
-      return Double.NaN;
+    if (!Double.isNaN(teleopStartTimestampSec)) {
+      return Math.max(0.0, Timer.getFPGATimestamp() - teleopStartTimestampSec);
     }
 
-    return Math.max(0.0, Timer.getFPGATimestamp() - teleopStartTimestampSec);
+    double matchTimeSec = DriverStation.getMatchTime();
+    if (DriverStation.isTeleopEnabled() && matchTimeSec >= 0.0 && matchTimeSec <= 135.0) {
+      return Math.max(0.0, 135.0 - matchTimeSec);
+    }
+
+    return Double.NaN;
   }
 
   private boolean isBlinkOn(double periodSec) {
@@ -262,10 +267,10 @@ public class ConnectorXLeds extends SubsystemBase {
     SmartDashboard.putBoolean("MatchHubFastPreActive", fastPreActive);
     SmartDashboard.putBoolean("MatchHubFMSAttached", DriverStation.isFMSAttached());
     SmartDashboard.putNumber(
-        "MatchHub/FMSAttachTimestampSec",
+        "MatchHubFMSAttachTimestampSec",
         Double.isNaN(fmsAttachTimestampSec) ? -1.0 : fmsAttachTimestampSec);
     SmartDashboard.putNumber(
-        "MatchHub/TeleopElapsedSec",
+        "MatchHubTeleopElapsedSec",
         Double.isNaN(teleopElapsedSec) ? -1.0 : teleopElapsedSec);
     SmartDashboard.putBoolean("MatchHubRedActiveFirst", isRedActiveFirst(gameData));
     SmartDashboard.putNumber("MatchHubMatchTime", DriverStation.getMatchTime());
@@ -274,7 +279,7 @@ public class ConnectorXLeds extends SubsystemBase {
         "MatchHubDSAlliance",
         dsAllianceOpt.isPresent() ? dsAllianceOpt.get().name() : "Unknown");
     SmartDashboard.putString(
-        "MatchHub/Alliance",
+        "MatchHubAlliance",
         allianceOpt.isPresent() ? allianceOpt.get().name() : "Unknown");
 
     int teamR = 0;
@@ -306,7 +311,7 @@ public class ConnectorXLeds extends SubsystemBase {
     } else if (hubActive) {
       setAll(teamR, teamG, teamB);
     } else {
-      setAll(teamR, teamG, teamB);
+      setAll(0, 0, 0);
     }
 
     try {
