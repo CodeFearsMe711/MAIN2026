@@ -18,7 +18,9 @@ public class ConnectorXLeds extends SubsystemBase {
   private static final int LED_COUNT = 300;
 
   private static final double kBlinkPeriodSec = 0.20;
+  private static final double kFastBlinkPeriodSec = 0.08;
   private static final double kPreActiveWindowSec = 5.0;
+  private static final double kFastPreActiveWindowSec = 2.0;
 
   private final ConnectorX cx = new ConnectorX();
   private DirectLED direct;
@@ -119,7 +121,10 @@ public class ConnectorXLeds extends SubsystemBase {
         gameData);
   }
 
-  private boolean isPreActiveNow(Optional<Alliance> allianceOpt, String gameData) {
+  private boolean willBeActiveInSeconds(
+      Optional<Alliance> allianceOpt,
+      String gameData,
+      double secondsAhead) {
     if (allianceOpt.isEmpty()) {
       return false;
     }
@@ -128,26 +133,45 @@ public class ConnectorXLeds extends SubsystemBase {
       return false;
     }
 
+    return isHubActiveAtMatchTime(
+        DriverStation.getMatchTime() - secondsAhead,
+        allianceOpt,
+        false,
+        true,
+        gameData);
+  }
+
+  private boolean isPreActiveNow(Optional<Alliance> allianceOpt, String gameData) {
     boolean activeNow = isHubActiveAtMatchTime(
         DriverStation.getMatchTime(),
         allianceOpt,
         false,
-        true,
+        DriverStation.isTeleopEnabled(),
         gameData);
 
-    boolean activeInFiveSeconds = isHubActiveAtMatchTime(
-        DriverStation.getMatchTime() - kPreActiveWindowSec,
-        allianceOpt,
-        false,
-        true,
-        gameData);
+    boolean activeInFiveSeconds =
+        willBeActiveInSeconds(allianceOpt, gameData, kPreActiveWindowSec);
 
     return !activeNow && activeInFiveSeconds;
   }
 
-  private void updateBlinkState() {
+  private boolean isFastPreActiveNow(Optional<Alliance> allianceOpt, String gameData) {
+    boolean activeNow = isHubActiveAtMatchTime(
+        DriverStation.getMatchTime(),
+        allianceOpt,
+        false,
+        DriverStation.isTeleopEnabled(),
+        gameData);
+
+    boolean activeInTwoSeconds =
+        willBeActiveInSeconds(allianceOpt, gameData, kFastPreActiveWindowSec);
+
+    return !activeNow && activeInTwoSeconds;
+  }
+
+  private void updateBlinkState(double periodSec) {
     double now = Timer.getFPGATimestamp();
-    if (now - lastBlinkToggle >= kBlinkPeriodSec) {
+    if (now - lastBlinkToggle >= periodSec) {
       lastBlinkToggle = now;
       blinkOn = !blinkOn;
     }
@@ -169,9 +193,11 @@ public class ConnectorXLeds extends SubsystemBase {
 
     boolean hubActive = isHubActiveNow(allianceOpt, gameData);
     boolean preActive = isPreActiveNow(allianceOpt, gameData);
+    boolean fastPreActive = isFastPreActiveNow(allianceOpt, gameData);
 
     SmartDashboard.putBoolean("MatchHub/Active", hubActive);
     SmartDashboard.putBoolean("MatchHub/PreActive", preActive);
+    SmartDashboard.putBoolean("MatchHub/FastPreActive", fastPreActive);
     SmartDashboard.putNumber("MatchHub/MatchTime", DriverStation.getMatchTime());
     SmartDashboard.putString("MatchHub/GameData", gameData);
     SmartDashboard.putString(
@@ -192,8 +218,22 @@ public class ConnectorXLeds extends SubsystemBase {
       teamB = 0;
     }
 
-    if (hubActive || preActive) {
-      updateBlinkState();
+    if (hubActive) {
+      updateBlinkState(kBlinkPeriodSec);
+      if (blinkOn) {
+        setAll(teamR, teamG, teamB);
+      } else {
+        setAll(0, 0, 0);
+      }
+    } else if (fastPreActive) {
+      updateBlinkState(kFastBlinkPeriodSec);
+      if (blinkOn) {
+        setAll(teamR, teamG, teamB);
+      } else {
+        setAll(0, 0, 0);
+      }
+    } else if (preActive) {
+      updateBlinkState(kBlinkPeriodSec);
       if (blinkOn) {
         setAll(teamR, teamG, teamB);
       } else {
