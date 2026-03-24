@@ -238,13 +238,7 @@ public class ConnectorXLeds extends SubsystemBase {
       teamB = 0;
     }
 
-    if (hubActive) {
-      if (isBlinkOn(kBlinkPeriodSec)) {
-        setAll(teamR, teamG, teamB);
-      } else {
-        setAll(0, 0, 0);
-      }
-    } else if (fastPreActive) {
+    if (fastPreActive) {
       if (isBlinkOn(kFastBlinkPeriodSec)) {
         setAll(teamR, teamG, teamB);
       } else {
@@ -256,6 +250,8 @@ public class ConnectorXLeds extends SubsystemBase {
       } else {
         setAll(0, 0, 0);
       }
+    } else if (hubActive) {
+      setAll(teamR, teamG, teamB);
     } else {
       setAll(teamR, teamG, teamB);
     }
