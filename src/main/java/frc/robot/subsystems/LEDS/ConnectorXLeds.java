@@ -14,6 +14,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ConnectorXLeds extends SubsystemBase {
+  private static final String kHubStartModeKey = "MatchHubStartMode";
+  private static final String kAllianceOverrideKey = "MatchHubAllianceOverride";
   private static final String ZONE_NAME = "TestZone";
   private static final int LED_COUNT = 300;
 
@@ -28,6 +30,7 @@ public class ConnectorXLeds extends SubsystemBase {
 
   private boolean started = false;
   private boolean connected = false;
+  private boolean dashboardDefaultsPublished = false;
 
   private boolean wasFmsAttached = false;
   private boolean wasTeleopEnabled = false;
@@ -57,15 +60,49 @@ public class ConnectorXLeds extends SubsystemBase {
     }
   }
 
-  private boolean isRedActiveFirst(String gameData) {
-    if (gameData == null || gameData.isEmpty()) {
-      return true;
+  private void publishDashboardDefaults() {
+    if (dashboardDefaultsPublished) {
+      return;
     }
 
-    switch (Character.toUpperCase(gameData.charAt(0))) {
-      case 'R':
+    SmartDashboard.putString(kHubStartModeKey, "AUTO");
+    SmartDashboard.putString(kAllianceOverrideKey, "AUTO");
+    dashboardDefaultsPublished = true;
+  }
+
+  private Optional<Alliance> getEffectiveAlliance(Optional<Alliance> allianceOpt) {
+    if (allianceOpt.isPresent()) {
+      return allianceOpt;
+    }
+
+    String override = SmartDashboard.getString(kAllianceOverrideKey, "AUTO").trim().toUpperCase();
+    switch (override) {
+      case "RED":
+        return Optional.of(Alliance.Red);
+      case "BLUE":
+        return Optional.of(Alliance.Blue);
+      default:
+        return Optional.empty();
+    }
+  }
+
+  private boolean isRedActiveFirst(String gameData) {
+    if (gameData != null && !gameData.isEmpty()) {
+      switch (Character.toUpperCase(gameData.charAt(0))) {
+        case 'R':
+          return true;
+        case 'B':
+          return false;
+        default:
+          break;
+      }
+    }
+
+    String startMode = SmartDashboard.getString(kHubStartModeKey, "AUTO").trim().toUpperCase();
+    switch (startMode) {
+      case "RED":
         return true;
-      case 'B':
+      case "BLUE":
         return false;
       default:
         return true;
@@ -208,9 +245,11 @@ public class ConnectorXLeds extends SubsystemBase {
     if (!started) start();
     if (!connected || direct == null) return;
 
+    publishDashboardDefaults();
     updateTimingState();
 
-    Optional<Alliance> allianceOpt = DriverStation.getAlliance();
+    Optional<Alliance> dsAllianceOpt = DriverStation.getAlliance();
+    Optional<Alliance> allianceOpt = getEffectiveAlliance(dsAllianceOpt);
     String gameData = DriverStation.getGameSpecificMessage();
     double teleopElapsedSec = getTeleopElapsedSec();
 
@@ -231,6 +270,9 @@ public class ConnectorXLeds extends SubsystemBase {
     SmartDashboard.putBoolean("MatchHubRedActiveFirst", isRedActiveFirst(gameData));
     SmartDashboard.putNumber("MatchHubMatchTime", DriverStation.getMatchTime());
     SmartDashboard.putString("MatchHubGameData", gameData);
+    SmartDashboard.putString(
+        "MatchHubDSAlliance",
+        dsAllianceOpt.isPresent() ? dsAllianceOpt.get().name() : "Unknown");
     SmartDashboard.putString(
         "MatchHub/Alliance",
         allianceOpt.isPresent() ? allianceOpt.get().name() : "Unknown");
