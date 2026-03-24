@@ -29,8 +29,8 @@ public class ConnectorXLeds extends SubsystemBase {
   private boolean started = false;
   private boolean connected = false;
 
-  private double lastBlinkToggle = 0.0;
-  private boolean blinkOn = false;
+  private boolean wasFmsAttached = false;
+  private double fmsAttachTimestampSec = Double.NaN;
 
   private void start() {
     if (started) return;
@@ -169,12 +169,26 @@ public class ConnectorXLeds extends SubsystemBase {
     return !activeNow && activeInTwoSeconds;
   }
 
-  private void updateBlinkState(double periodSec) {
+  private void updateFmsSyncState() {
     double now = Timer.getFPGATimestamp();
-    if (now - lastBlinkToggle >= periodSec) {
-      lastBlinkToggle = now;
-      blinkOn = !blinkOn;
+
+    boolean isFmsAttached = DriverStation.isFMSAttached();
+    if (isFmsAttached && !wasFmsAttached) {
+      fmsAttachTimestampSec = now;
     }
+
+    if (!isFmsAttached) {
+      fmsAttachTimestampSec = Double.NaN;
+    }
+
+    wasFmsAttached = isFmsAttached;
+  }
+
+  private boolean isBlinkOn(double periodSec) {
+    double now = Timer.getFPGATimestamp();
+    double blinkOriginSec = Double.isNaN(fmsAttachTimestampSec) ? 0.0 : fmsAttachTimestampSec;
+    double phaseSec = (now - blinkOriginSec) % periodSec;
+    return phaseSec < (periodSec * 0.5);
   }
 
   private void setAll(int r, int g, int b) {
@@ -188,6 +202,8 @@ public class ConnectorXLeds extends SubsystemBase {
     if (!started) start();
     if (!connected || direct == null) return;
 
+    updateFmsSyncState();
+
     Optional<Alliance> allianceOpt = DriverStation.getAlliance();
     String gameData = DriverStation.getGameSpecificMessage();
 
@@ -198,6 +214,10 @@ public class ConnectorXLeds extends SubsystemBase {
     SmartDashboard.putBoolean("MatchHub/Active", hubActive);
     SmartDashboard.putBoolean("MatchHub/PreActive", preActive);
     SmartDashboard.putBoolean("MatchHub/FastPreActive", fastPreActive);
+    SmartDashboard.putBoolean("MatchHub/FMSAttached", DriverStation.isFMSAttached());
+    SmartDashboard.putNumber(
+        "MatchHub/FMSAttachTimestampSec",
+        Double.isNaN(fmsAttachTimestampSec) ? -1.0 : fmsAttachTimestampSec);
     SmartDashboard.putNumber("MatchHub/MatchTime", DriverStation.getMatchTime());
     SmartDashboard.putString("MatchHub/GameData", gameData);
     SmartDashboard.putString(
@@ -219,22 +239,19 @@ public class ConnectorXLeds extends SubsystemBase {
     }
 
     if (hubActive) {
-      updateBlinkState(kBlinkPeriodSec);
-      if (blinkOn) {
+      if (isBlinkOn(kBlinkPeriodSec)) {
         setAll(teamR, teamG, teamB);
       } else {
         setAll(0, 0, 0);
       }
     } else if (fastPreActive) {
-      updateBlinkState(kFastBlinkPeriodSec);
-      if (blinkOn) {
+      if (isBlinkOn(kFastBlinkPeriodSec)) {
         setAll(teamR, teamG, teamB);
       } else {
         setAll(0, 0, 0);
       }
     } else if (preActive) {
-      updateBlinkState(kBlinkPeriodSec);
-      if (blinkOn) {
+      if (isBlinkOn(kBlinkPeriodSec)) {
         setAll(teamR, teamG, teamB);
       } else {
         setAll(0, 0, 0);
