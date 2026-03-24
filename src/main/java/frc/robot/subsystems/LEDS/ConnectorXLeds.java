@@ -21,7 +21,7 @@ public class ConnectorXLeds extends SubsystemBase {
 
   private static final double kBlinkPeriodSec = 0.20;
   private static final double kFastBlinkPeriodSec = 0.08;
-  private static final double kPreActiveWindowSec = 5.0;
+  private static final double kPreActiveWindowSec = 8.0;
   private static final double kFastPreActiveWindowSec = 2.0;
 
   private final ConnectorX cx = new ConnectorX();
