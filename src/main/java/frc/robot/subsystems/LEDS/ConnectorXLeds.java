@@ -30,7 +30,14 @@ public class ConnectorXLeds extends SubsystemBase {
   private boolean connected = false;
 
   private boolean wasFmsAttached = false;
+  private boolean wasTeleopEnabled = false;
   private double fmsAttachTimestampSec = Double.NaN;
+  private double teleopStartTimestampSec = Double.NaN;
+
+  private static final double kFirstTeleopWindowSec = 15.0;
+  private static final double kSwapTeleopWindowSec = 25.0;
+  private static final double kFinalActiveWindowStartSec =
+      kFirstTeleopWindowSec + (3.0 * kSwapTeleopWindowSec);
 
   private void start() {
     if (started) return;
@@ -50,126 +57,108 @@ public class ConnectorXLeds extends SubsystemBase {
     }
   }
 
-  private boolean isHubActiveAtMatchTime(
-      double matchTimeSec,
-      Optional<Alliance> allianceOpt,
-      boolean isAutoEnabled,
-      boolean isTeleopEnabled,
-      String gameData) {
-
-    if (allianceOpt.isEmpty()) {
-      return false;
-    }
-
-    if (isAutoEnabled) {
-      return true;
-    }
-
-    if (!isTeleopEnabled) {
-      return false;
-    }
-
+  private boolean isRedActiveFirst(String gameData) {
     if (gameData == null || gameData.isEmpty()) {
       return true;
     }
 
-    boolean redInactiveFirst;
-    switch (gameData.charAt(0)) {
+    switch (Character.toUpperCase(gameData.charAt(0))) {
       case 'R':
-        redInactiveFirst = true;
-        break;
+        return true;
       case 'B':
-        redInactiveFirst = false;
-        break;
+        return false;
       default:
         return true;
     }
-
-    boolean shift1Active;
-    switch (allianceOpt.get()) {
-      case Red:
-        shift1Active = !redInactiveFirst;
-        break;
-      case Blue:
-        shift1Active = redInactiveFirst;
-        break;
-      default:
-        return true;
-    }
-
-    if (matchTimeSec > 130.0) {
-      return true;
-    } else if (matchTimeSec > 105.0) {
-      return shift1Active;
-    } else if (matchTimeSec > 80.0) {
-      return !shift1Active;
-    } else if (matchTimeSec > 55.0) {
-      return shift1Active;
-    } else if (matchTimeSec > 30.0) {
-      return !shift1Active;
-    } else {
-      return true;
-    }
   }
 
-  private boolean isHubActiveNow(Optional<Alliance> allianceOpt, String gameData) {
-    return isHubActiveAtMatchTime(
-        DriverStation.getMatchTime(),
-        allianceOpt,
-        DriverStation.isAutonomousEnabled(),
-        DriverStation.isTeleopEnabled(),
-        gameData);
+  private boolean isAllianceActiveInSegment(Alliance alliance, boolean redActive) {
+    return (alliance == Alliance.Red && redActive)
+        || (alliance == Alliance.Blue && !redActive);
   }
 
-  private boolean willBeActiveInSeconds(
+  private boolean isHubActiveAtTeleopElapsed(
+      double teleopElapsedSec,
       Optional<Alliance> allianceOpt,
-      String gameData,
-      double secondsAhead) {
+      String gameData) {
     if (allianceOpt.isEmpty()) {
       return false;
     }
 
-    if (!DriverStation.isTeleopEnabled()) {
+    boolean redActiveFirst = isRedActiveFirst(gameData);
+    Alliance alliance = allianceOpt.get();
+
+    if (teleopElapsedSec < kFirstTeleopWindowSec) {
+      return isAllianceActiveInSegment(alliance, redActiveFirst);
+    }
+
+    if (teleopElapsedSec < kFirstTeleopWindowSec + kSwapTeleopWindowSec) {
+      return isAllianceActiveInSegment(alliance, !redActiveFirst);
+    }
+
+    if (teleopElapsedSec < kFirstTeleopWindowSec + (2.0 * kSwapTeleopWindowSec)) {
+      return isAllianceActiveInSegment(alliance, redActiveFirst);
+    }
+
+    if (teleopElapsedSec < kFinalActiveWindowStartSec) {
+      return isAllianceActiveInSegment(alliance, !redActiveFirst);
+    }
+
+    return true;
+  }
+
+  private boolean isHubActiveNow(
+      double teleopElapsedSec,
+      Optional<Alliance> allianceOpt,
+      String gameData) {
+    if (DriverStation.isAutonomousEnabled()) {
+      return true;
+    }
+
+    if (!DriverStation.isTeleopEnabled() || Double.isNaN(teleopElapsedSec)) {
       return false;
     }
 
-    return isHubActiveAtMatchTime(
-        DriverStation.getMatchTime() - secondsAhead,
-        allianceOpt,
-        false,
-        true,
-        gameData);
+    return isHubActiveAtTeleopElapsed(teleopElapsedSec, allianceOpt, gameData);
   }
 
-  private boolean isPreActiveNow(Optional<Alliance> allianceOpt, String gameData) {
-    boolean activeNow = isHubActiveAtMatchTime(
-        DriverStation.getMatchTime(),
-        allianceOpt,
-        false,
-        DriverStation.isTeleopEnabled(),
-        gameData);
+  private boolean willBeActiveInSeconds(
+      double teleopElapsedSec,
+      Optional<Alliance> allianceOpt,
+      String gameData,
+      double secondsAhead) {
+    if (!DriverStation.isTeleopEnabled() || Double.isNaN(teleopElapsedSec)) {
+      return false;
+    }
+
+    return isHubActiveAtTeleopElapsed(teleopElapsedSec + secondsAhead, allianceOpt, gameData);
+  }
+
+  private boolean isPreActiveNow(
+      double teleopElapsedSec,
+      Optional<Alliance> allianceOpt,
+      String gameData) {
+    boolean activeNow = isHubActiveNow(teleopElapsedSec, allianceOpt, gameData);
 
     boolean activeInFiveSeconds =
-        willBeActiveInSeconds(allianceOpt, gameData, kPreActiveWindowSec);
+        willBeActiveInSeconds(teleopElapsedSec, allianceOpt, gameData, kPreActiveWindowSec);
 
     return !activeNow && activeInFiveSeconds;
   }
 
-  private boolean isFastPreActiveNow(Optional<Alliance> allianceOpt, String gameData) {
-    boolean activeNow = isHubActiveAtMatchTime(
-        DriverStation.getMatchTime(),
-        allianceOpt,
-        false,
-        DriverStation.isTeleopEnabled(),
-        gameData);
+  private boolean isFastPreActiveNow(
+      double teleopElapsedSec,
+      Optional<Alliance> allianceOpt,
+      String gameData) {
+    boolean activeNow = isHubActiveNow(teleopElapsedSec, allianceOpt, gameData);
 
     boolean activeInTwoSeconds =
-        willBeActiveInSeconds(allianceOpt, gameData, kFastPreActiveWindowSec);
+        willBeActiveInSeconds(teleopElapsedSec, allianceOpt, gameData, kFastPreActiveWindowSec);
 
     return !activeNow && activeInTwoSeconds;
   }
 
-  private void updateFmsSyncState() {
+  private void updateTimingState() {
     double now = Timer.getFPGATimestamp();
 
     boolean isFmsAttached = DriverStation.isFMSAttached();
@@ -179,14 +168,31 @@ public class ConnectorXLeds extends SubsystemBase {
 
     if (!isFmsAttached) {
       fmsAttachTimestampSec = Double.NaN;
+      teleopStartTimestampSec = Double.NaN;
+    }
+
+    boolean isTeleopEnabled = DriverStation.isTeleopEnabled();
+    if (isTeleopEnabled && !wasTeleopEnabled) {
+      teleopStartTimestampSec = now;
     }
 
     wasFmsAttached = isFmsAttached;
+    wasTeleopEnabled = isTeleopEnabled;
+  }
+
+  private double getTeleopElapsedSec() {
+    if (Double.isNaN(teleopStartTimestampSec)) {
+      return Double.NaN;
+    }
+
+    return Math.max(0.0, Timer.getFPGATimestamp() - teleopStartTimestampSec);
   }
 
   private boolean isBlinkOn(double periodSec) {
     double now = Timer.getFPGATimestamp();
-    double blinkOriginSec = Double.isNaN(fmsAttachTimestampSec) ? 0.0 : fmsAttachTimestampSec;
+    double blinkOriginSec = !Double.isNaN(teleopStartTimestampSec)
+        ? teleopStartTimestampSec
+        : (Double.isNaN(fmsAttachTimestampSec) ? 0.0 : fmsAttachTimestampSec);
     double phaseSec = (now - blinkOriginSec) % periodSec;
     return phaseSec < (periodSec * 0.5);
   }
@@ -202,14 +208,15 @@ public class ConnectorXLeds extends SubsystemBase {
     if (!started) start();
     if (!connected || direct == null) return;
 
-    updateFmsSyncState();
+    updateTimingState();
 
     Optional<Alliance> allianceOpt = DriverStation.getAlliance();
     String gameData = DriverStation.getGameSpecificMessage();
+    double teleopElapsedSec = getTeleopElapsedSec();
 
-    boolean hubActive = isHubActiveNow(allianceOpt, gameData);
-    boolean preActive = isPreActiveNow(allianceOpt, gameData);
-    boolean fastPreActive = isFastPreActiveNow(allianceOpt, gameData);
+    boolean hubActive = isHubActiveNow(teleopElapsedSec, allianceOpt, gameData);
+    boolean preActive = isPreActiveNow(teleopElapsedSec, allianceOpt, gameData);
+    boolean fastPreActive = isFastPreActiveNow(teleopElapsedSec, allianceOpt, gameData);
 
     SmartDashboard.putBoolean("MatchHub/Active", hubActive);
     SmartDashboard.putBoolean("MatchHub/PreActive", preActive);
@@ -218,6 +225,10 @@ public class ConnectorXLeds extends SubsystemBase {
     SmartDashboard.putNumber(
         "MatchHub/FMSAttachTimestampSec",
         Double.isNaN(fmsAttachTimestampSec) ? -1.0 : fmsAttachTimestampSec);
+    SmartDashboard.putNumber(
+        "MatchHub/TeleopElapsedSec",
+        Double.isNaN(teleopElapsedSec) ? -1.0 : teleopElapsedSec);
+    SmartDashboard.putBoolean("MatchHub/RedActiveFirst", isRedActiveFirst(gameData));
     SmartDashboard.putNumber("MatchHub/MatchTime", DriverStation.getMatchTime());
     SmartDashboard.putString("MatchHub/GameData", gameData);
     SmartDashboard.putString(
