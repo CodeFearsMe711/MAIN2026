@@ -16,34 +16,56 @@ public final class AimAssistMath {
   public static PhotonTrackedTarget findBestAllowedTarget(
       List<PhotonTrackedTarget> targets,
       int... allowedIds) {
+    return findBestAllowedTarget(targets, -1, allowedIds);
+  }
 
-    PhotonTrackedTarget best = null;
-    double bestAbsYaw = Double.POSITIVE_INFINITY;
+  public static PhotonTrackedTarget findBestAllowedTarget(
+      List<PhotonTrackedTarget> targets,
+      int preferredId,
+      int... allowedIds) {
 
-    for (PhotonTrackedTarget t : targets) {
-
-      int id = t.getFiducialId();
-
-      boolean allowed = false;
-
-      for (int a : allowedIds) {
-        if (id == a) {
-          allowed = true;
-          break;
+    if (preferredId >= 0) {
+      for (PhotonTrackedTarget t : targets) {
+        if (t.getFiducialId() == preferredId && isAllowed(preferredId, allowedIds) && isUsable(t)) {
+          return t;
         }
       }
+    }
 
-      if (!allowed) continue;
+    PhotonTrackedTarget best = null;
+    double bestScore = Double.POSITIVE_INFINITY;
 
-      double absYaw = Math.abs(t.getYaw());
+    for (PhotonTrackedTarget t : targets) {
+      int id = t.getFiducialId();
+      if (!isAllowed(id, allowedIds) || !isUsable(t)) {
+        continue;
+      }
 
-      if (absYaw < bestAbsYaw) {
-        bestAbsYaw = absYaw;
+      double ambiguity = t.getPoseAmbiguity();
+      double ambiguityPenalty = ambiguity >= 0.0 ? ambiguity * 6.0 : 0.0;
+      double score = Math.abs(t.getYaw()) - (2.0 * t.getArea()) + ambiguityPenalty;
+
+      if (score < bestScore) {
+        bestScore = score;
         best = t;
       }
     }
 
     return best;
+  }
+
+  private static boolean isAllowed(int id, int... allowedIds) {
+    for (int a : allowedIds) {
+      if (id == a) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isUsable(PhotonTrackedTarget target) {
+    double ambiguity = target.getPoseAmbiguity();
+    return ambiguity < 0.0 || ambiguity <= VisionConstants.kMaxPoseAmbiguity;
   }
 
   public static Optional<Double> getCorrectedYawRad(

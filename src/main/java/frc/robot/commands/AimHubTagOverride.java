@@ -18,6 +18,11 @@ public class AimHubTagOverride extends Command {
   private final PIDController pid;
 
   private double lastOmega = 0.0;
+  private int lockedAimTagId = -1;
+  private int lockedShooterTagId = -1;
+  private double filteredYawErrRad = 0.0;
+  private boolean hasFilteredYawErr = false;
+  private static final double kYawErrorFilterAlpha = 0.35;
 
   public AimHubTagOverride(
       CommandSwerveDrivetrain drivetrain,
@@ -38,6 +43,9 @@ public class AimHubTagOverride extends Command {
   public void initialize() {
     pid.reset();
     lastOmega = 0.0;
+    lockedAimTagId = -1;
+    lockedShooterTagId = -1;
+    hasFilteredYawErr = false;
     shooter.setVisionEnabled(true);
     SmartDashboard.putBoolean("AutoAimLBActive", true);
   }
@@ -51,17 +59,22 @@ public class AimHubTagOverride extends Command {
       drivetrain.clearOmegaOverride();
       pid.reset();
       lastOmega = 0.0;
+      lockedAimTagId = -1;
+      lockedShooterTagId = -1;
+      hasFilteredYawErr = false;
       return;
     }
 
     var bestAimTarget =
     AimAssistMath.findBestAllowedTarget(
         result.getTargets(),
+        lockedAimTagId,
         VisionConstants.kAimTagIds);
 
 var bestShooterTarget =
     AimAssistMath.findBestAllowedTarget(
         result.getTargets(),
+        lockedShooterTagId,
         VisionConstants.kShooterTagIds);
 
     if (bestAimTarget == null) {
@@ -69,12 +82,17 @@ var bestShooterTarget =
   drivetrain.clearOmegaOverride();
   pid.reset();
   lastOmega = 0.0;
+  lockedAimTagId = -1;
+  lockedShooterTagId = -1;
+  hasFilteredYawErr = false;
   return;
 }
 
+lockedAimTagId = bestAimTarget.getFiducialId();
 SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
 
 if (bestShooterTarget != null) {
+  lockedShooterTagId = bestShooterTarget.getFiducialId();
   double area = bestShooterTarget.getArea();
   double shooterSpeed = ShooterMath.tagAreaToShooterRps(area);
 
@@ -96,7 +114,16 @@ var yawOpt = AimAssistMath.getCorrectedYawRad(bestAimTarget, speeds);
       return;
     }
 
-    double yawErrRad = yawOpt.get();
+    double yawErrRadRaw = yawOpt.get();
+    if (!hasFilteredYawErr) {
+      filteredYawErrRad = yawErrRadRaw;
+      hasFilteredYawErr = true;
+    } else {
+      filteredYawErrRad =
+          (kYawErrorFilterAlpha * yawErrRadRaw)
+              + ((1.0 - kYawErrorFilterAlpha) * filteredYawErrRad);
+    }
+    double yawErrRad = filteredYawErrRad;
     double omega;
 
     if (Math.abs(yawErrRad) < VisionConstants.kAimMinErrorRad) {
@@ -118,6 +145,9 @@ var yawOpt = AimAssistMath.getCorrectedYawRad(bestAimTarget, speeds);
     SmartDashboard.putNumber(
         "AutoAimYawErrDeg",
         edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRad));
+    SmartDashboard.putNumber(
+        "AutoAimYawErrRawDeg",
+        edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRadRaw));
     SmartDashboard.putNumber("AutoAimOmegaCmd", omega);
 
     drivetrain.setOmegaOverride(omega);
@@ -130,6 +160,9 @@ var yawOpt = AimAssistMath.getCorrectedYawRad(bestAimTarget, speeds);
     drivetrain.clearOmegaOverride();
     pid.reset();
     lastOmega = 0.0;
+    lockedAimTagId = -1;
+    lockedShooterTagId = -1;
+    hasFilteredYawErr = false;
     shooter.setVisionEnabled(false);
   }
 

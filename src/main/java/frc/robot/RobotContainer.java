@@ -116,6 +116,11 @@ public class RobotContainer {
           VisionConstants.kAimRangeKd);
 
   private double m_lastVisionTimestamp = -1.0;
+  private int m_lockedAimTagId = -1;
+  private int m_lockedShooterTagId = -1;
+  private double m_filteredAimYawErrRad = 0.0;
+  private boolean m_hasFilteredAimYawErr = false;
+  private static final double kAimYawErrorFilterAlpha = 0.35;
 
   private static final double kMaxVisionStalenessSec = 0.250;
   private static final double kBasePosTolMeters = 0.35;
@@ -398,23 +403,30 @@ m_driverController.leftBumper().whileTrue(
           var bestAimTarget =
               AimAssistMath.findBestAllowedTarget(
                   result.getTargets(),
+                  m_lockedAimTagId,
                   VisionConstants.kAimTagIds);
 
           // TARGET USED FOR SHOOTER SPEED
           var bestShooterTarget =
               AimAssistMath.findBestAllowedTarget(
                   result.getTargets(),
+                  m_lockedShooterTagId,
                   VisionConstants.kShooterTagIds);
 
           if (bestAimTarget == null) {
             SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
+            m_lockedAimTagId = -1;
+            m_lockedShooterTagId = -1;
+            m_hasFilteredAimYawErr = false;
             return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
           }
 
+          m_lockedAimTagId = bestAimTarget.getFiducialId();
           SmartDashboard.putBoolean("AutoAimHasAllowedTarget", true);
 
           // SHOOTER SPEED FROM SHOOTER TAG IDS
           if (bestShooterTarget != null) {
+            m_lockedShooterTagId = bestShooterTarget.getFiducialId();
             double area = bestShooterTarget.getArea();
             double shooterRps = ShooterMath.tagAreaToShooterRps(area);
 
@@ -429,11 +441,23 @@ m_driverController.leftBumper().whileTrue(
           var yawOpt = AimAssistMath.getCorrectedYawRad(bestAimTarget, robotSpeeds);
 
           if (yawOpt.isPresent()) {
-            double yawErrRad = yawOpt.get();
+            double yawErrRadRaw = yawOpt.get();
+            if (!m_hasFilteredAimYawErr) {
+              m_filteredAimYawErrRad = yawErrRadRaw;
+              m_hasFilteredAimYawErr = true;
+            } else {
+              m_filteredAimYawErrRad =
+                  (kAimYawErrorFilterAlpha * yawErrRadRaw)
+                      + ((1.0 - kAimYawErrorFilterAlpha) * m_filteredAimYawErrRad);
+            }
+            double yawErrRad = m_filteredAimYawErrRad;
 
             SmartDashboard.putNumber(
                 "AutoAimYawErrDeg",
                 edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRad));
+            SmartDashboard.putNumber(
+                "AutoAimYawErrRawDeg",
+                edu.wpi.first.math.util.Units.radiansToDegrees(yawErrRadRaw));
 
             if (Math.abs(yawErrRad) < VisionConstants.kAimMinErrorRad) {
               omega = 0.0;
@@ -451,6 +475,7 @@ m_driverController.leftBumper().whileTrue(
             SmartDashboard.putNumber("AutoAimOmegaCmd", omega);
           } else {
             m_aimPid.reset();
+            m_hasFilteredAimYawErr = false;
           }
 
           return drive.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega);
@@ -461,6 +486,9 @@ m_driverController.leftBumper().onFalse(
         () -> {
           SmartDashboard.putBoolean("AutoAimLBActive", false);
           SmartDashboard.putBoolean("AutoAimHasAllowedTarget", false);
+          m_lockedAimTagId = -1;
+          m_lockedShooterTagId = -1;
+          m_hasFilteredAimYawErr = false;
           m_aimPid.reset();
           m_shootersubsystem.setVisionEnabled(false);
         }));
