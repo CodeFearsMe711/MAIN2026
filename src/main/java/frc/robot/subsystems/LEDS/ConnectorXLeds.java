@@ -296,7 +296,9 @@ public class ConnectorXLeds extends SubsystemBase {
       teamB = 0;
     }
 
-    if (fastPreActive) {
+    if (DriverStation.isDisabled()) {
+      setAll(teamR, teamG, teamB);
+    } else if (fastPreActive) {
       if (isBlinkOn(kFastBlinkPeriodSec)) {
         setAll(teamR, teamG, teamB);
       } else {
