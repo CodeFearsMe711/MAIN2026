@@ -54,8 +54,8 @@ public final class Constants {
     // =========================
 
     // Put the "right" tag IDs you want to aim at here
-    public static final int[] kAimTagIds = { 10, 26, 21, 18, 5, 11, 4, 8}; 
-    public static final int[] kShooterTagIds = {10, 26, 21, 18, 5, 11, 4, 8};
+    public static final int[] kAimTagIds = {10, 26, 24, 27, 8, 11}; 
+    public static final int[] kShooterTagIds = {10, 26, 24, 27, 8, 11};
 
     // PID gains for turning to face the tag using yaw error
     public static final double kAimKp = 3;

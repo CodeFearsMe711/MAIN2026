@@ -20,7 +20,7 @@ public static final boolean kPressedWhenVoltageAboveThreshold = true;
   public static final double kMotorRotationsPerClimberRotation = 36.0;
 
   // Bottom should now be zeroed by the switches
-  public static final double kMinDeg = 0.0;
+  public static final double kMinDeg = -1500.0;
   public static final double kMaxDeg = 1500.0;
 
   public static final double kManualUpOutput = 1;

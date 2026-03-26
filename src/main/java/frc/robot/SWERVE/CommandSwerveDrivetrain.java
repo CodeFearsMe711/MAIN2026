@@ -223,14 +223,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 @Override
 public void periodic() {
     if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-        DriverStation.getAlliance().ifPresent(allianceColor -> {
-            setOperatorPerspectiveForward(
-                allianceColor == DriverStation.Alliance.Red
-                    ? Rotation2d.k180deg
-                    : Rotation2d.kZero
-            );
-            m_hasAppliedOperatorPerspective = true;
-        });
+        // Keep field-centric "forward" locked to the physical front of the robot.
+        // This prevents alliance-based 180 flips that can make controls feel reversed
+        // after running certain autos.
+        setOperatorPerspectiveForward(kOperatorPerspectiveForward);
+        m_hasAppliedOperatorPerspective = true;
     }
 
     Pose2d pose = this.getState().Pose;
