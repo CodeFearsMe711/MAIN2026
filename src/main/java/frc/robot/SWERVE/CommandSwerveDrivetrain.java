@@ -39,8 +39,10 @@ import frc.robot.SWERVE.TunerConstants.TunerSwerveDrivetrain;
  */
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
+    private static final double kDashboardPublishPeriodSec = 0.1; // 10 Hz
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+    private double m_lastDashboardPublishTime = 0.0;
 
     /* Always treat the physical front of the robot as forward on boot */
     private static final Rotation2d kOperatorPerspectiveForward = Rotation2d.kZero;
@@ -218,7 +220,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return m_sysIdRoutineToApply.dynamic(direction);
     }
 
-    @Override
+@Override
 public void periodic() {
     if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
         DriverStation.getAlliance().ifPresent(allianceColor -> {
@@ -234,14 +236,19 @@ public void periodic() {
     Pose2d pose = this.getState().Pose;
     posePublisher.set(pose);
 
-    SmartDashboard.putNumber("AScope/X", pose.getX());
-    SmartDashboard.putNumber("AScope/Y", pose.getY());
-    SmartDashboard.putNumber("AScopeHeadingDeg", this.getState().Pose.getRotation().getDegrees());
-    SmartDashboard.putNumber("AScopeOmegaRadPerSec", this.getState().Speeds.omegaRadiansPerSecond);
-    SmartDashboard.putNumber("AScope/HeadingDeg", pose.getRotation().getDegrees());
-    SmartDashboard.putNumber("PoseHeadingDeg", this.getState().Pose.getRotation().getDegrees());
-    SmartDashboard.putNumber("OmegaRadPerSec", this.getState().Speeds.omegaRadiansPerSecond);
-    SmartDashboard.putNumber("RawPigeonYawDeg", this.getPigeon2().getYaw().getValueAsDouble());
+    double now = Utils.getCurrentTimeSeconds();
+    if ((now - m_lastDashboardPublishTime) >= kDashboardPublishPeriodSec) {
+        var state = this.getState();
+        SmartDashboard.putNumber("AScope/X", pose.getX());
+        SmartDashboard.putNumber("AScope/Y", pose.getY());
+        SmartDashboard.putNumber("AScopeHeadingDeg", state.Pose.getRotation().getDegrees());
+        SmartDashboard.putNumber("AScopeOmegaRadPerSec", state.Speeds.omegaRadiansPerSecond);
+        SmartDashboard.putNumber("AScope/HeadingDeg", pose.getRotation().getDegrees());
+        SmartDashboard.putNumber("PoseHeadingDeg", state.Pose.getRotation().getDegrees());
+        SmartDashboard.putNumber("OmegaRadPerSec", state.Speeds.omegaRadiansPerSecond);
+        SmartDashboard.putNumber("RawPigeonYawDeg", this.getPigeon2().getYaw().getValueAsDouble());
+        m_lastDashboardPublishTime = now;
+    }
 }
 
     private void startSimThread() {

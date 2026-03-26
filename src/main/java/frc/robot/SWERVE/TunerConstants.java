@@ -79,6 +79,9 @@ private static final TalonFXConfiguration steerInitialConfigs =
     // CAN bus that the devices are located on;
     // All swerve devices must share the same CAN bus
     public static final CANBus kCANBus = new CANBus("", "./logs/example.hoot");
+    // Lowering odometry update frequency on CAN 2.0 leaves more headroom and can
+    // reduce stale status warnings when the bus is busy.
+    public static final double kOdometryUpdateFrequencyHz = 50.0;
 
     // Theoretical free speed (m/s) at 12 V applied output;
     // This needs to be tuned to your individual robot
@@ -205,7 +208,7 @@ private static final TalonFXConfiguration steerInitialConfigs =
      */
     public static CommandSwerveDrivetrain createDrivetrain() {
         return new CommandSwerveDrivetrain(
-            DrivetrainConstants, FrontLeft, FrontRight, BackLeft, BackRight
+            DrivetrainConstants, kOdometryUpdateFrequencyHz, FrontLeft, FrontRight, BackLeft, BackRight
         );
     }
 
