@@ -15,7 +15,7 @@ public final class Constants {
   /** LED related constants */
   public static class Lights {
     public static final int kLedPort = 9;
-    public static final int kLedLength = 300;
+    public static final int kLedLength = 256;
   }
 
   /** Vision / AprilTag constants */
