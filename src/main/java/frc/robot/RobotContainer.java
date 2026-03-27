@@ -301,6 +301,7 @@ public class RobotContainer {
     SmartDashboard.putNumber("ShooterLowPresetRPS", 75.0);
     SmartDashboard.putNumber("ShooterFastPresetRPS", 100.0);
     SmartDashboard.putNumber("ShooterReverseMediumPresetRPS", -45.0);
+    SmartDashboard.putNumber("ShooterFeedReversePresetRPS", -20.0);
 
     m_driverController.a().whileTrue(
         Commands.runEnd(
@@ -309,10 +310,16 @@ public class RobotContainer {
 
     m_driverController.x().whileTrue(
         Commands.runEnd(
-            () ->
+            () -> {
                 m_shootersubsystem.setManualRPS(
-                    SmartDashboard.getNumber("ShooterReverseMediumPresetRPS", -45.0)),
-            () -> m_shootersubsystem.clearManualRPS()));
+                    SmartDashboard.getNumber("ShooterReverseMediumPresetRPS", -45.0));
+                m_shooterFeederSubsytem.setRPS(
+                    SmartDashboard.getNumber("ShooterFeedReversePresetRPS", -20.0));
+            },
+            () -> {
+                m_shootersubsystem.clearManualRPS();
+                m_shooterFeederSubsytem.stop();
+            }));
 
     m_driverController.y().whileTrue(
         Commands.runEnd(
