@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -127,9 +128,17 @@ public class RobotContainer {
   private static final double kBaseRotTolRad = Units.degreesToRadians(12.0);
   private static final double kPosTolPerSecMeters = 3.0;
   private static final double kRotTolPerSecRad = Units.degreesToRadians(360.0);
+  private static final String kHeadingStoreDegKey = "BrownoutRecovery/HeadingDeg";
+  private static final String kHeadingStoreTimeKey = "BrownoutRecovery/SystemTimeMs";
+  private static final double kHeadingSavePeriodSec = 0.25;
+  private static final long kHeadingRestoreFreshMs = 15_000L;
+  private static final double kBrownoutRiskVoltage = 10.0;
+  private static final double kBrownoutSaveWindowSec = 5.0;
 
   private RobotConfig m_robotConfig;
   private final SendableChooser<Command> m_autoChooser;
+  private double m_lastHeadingSaveTimeSec = Double.NEGATIVE_INFINITY;
+  private double m_saveHeadingUntilSec = Double.NEGATIVE_INFINITY;
 
   public RobotContainer() {
     configureNamedCommands();
@@ -291,10 +300,18 @@ public class RobotContainer {
 
     SmartDashboard.putNumber("ShooterLowPresetRPS", 75.0);
     SmartDashboard.putNumber("ShooterFastPresetRPS", 100.0);
+    SmartDashboard.putNumber("ShooterReverseMediumPresetRPS", -45.0);
 
     m_driverController.a().whileTrue(
         Commands.runEnd(
             () -> m_shootersubsystem.setManualRPS(SmartDashboard.getNumber("ShooterLowPresetRPS", 75.0)),
+            () -> m_shootersubsystem.clearManualRPS()));
+
+    m_driverController.x().whileTrue(
+        Commands.runEnd(
+            () ->
+                m_shootersubsystem.setManualRPS(
+                    SmartDashboard.getNumber("ShooterReverseMediumPresetRPS", -45.0)),
             () -> m_shootersubsystem.clearManualRPS()));
 
     m_driverController.y().whileTrue(
@@ -546,6 +563,82 @@ m_driverController.leftBumper().onFalse(
   }
 
   public void publishMatchHubStatus() {
+  }
+
+  public void armBrownoutHeadingCapture() {
+    m_saveHeadingUntilSec = Timer.getFPGATimestamp() + kBrownoutSaveWindowSec;
+    SmartDashboard.putString("BrownoutRecovery/Status", "Heading capture armed");
+  }
+
+  public void updateBrownoutHeadingCapture(double batteryVoltage, boolean brownedOut) {
+    double nowSec = Timer.getFPGATimestamp();
+
+    if (brownedOut || batteryVoltage <= kBrownoutRiskVoltage) {
+      armBrownoutHeadingCapture();
+    }
+
+    SmartDashboard.putBoolean(
+        "BrownoutRecovery/CaptureActive",
+        nowSec <= m_saveHeadingUntilSec);
+    SmartDashboard.putNumber(
+        "BrownoutRecovery/CaptureWindowRemainingSec",
+        Math.max(0.0, m_saveHeadingUntilSec - nowSec));
+  }
+
+  public void persistHeadingForBrownoutRecovery() {
+    double nowSec = Timer.getFPGATimestamp();
+    if (nowSec > m_saveHeadingUntilSec) {
+      return;
+    }
+
+    if ((nowSec - m_lastHeadingSaveTimeSec) < kHeadingSavePeriodSec) {
+      return;
+    }
+
+    Pose2d pose = drivetrain.getState().Pose;
+    double headingDeg = pose.getRotation().getDegrees();
+
+    Preferences.setDouble(kHeadingStoreDegKey, headingDeg);
+    Preferences.setDouble(kHeadingStoreTimeKey, (double) System.currentTimeMillis());
+
+    SmartDashboard.putNumber("BrownoutRecovery/SavedHeadingDeg", headingDeg);
+    SmartDashboard.putNumber(
+        "BrownoutRecovery/SavedAgeSec",
+        0.0);
+
+    m_lastHeadingSaveTimeSec = nowSec;
+  }
+
+  public void restoreHeadingAfterBrownout() {
+    double storedHeadingDeg = Preferences.getDouble(kHeadingStoreDegKey, Double.NaN);
+    double storedTimeMs = Preferences.getDouble(kHeadingStoreTimeKey, Double.NaN);
+
+    if (Double.isNaN(storedHeadingDeg) || Double.isNaN(storedTimeMs)) {
+      SmartDashboard.putString("BrownoutRecovery/Status", "No saved heading");
+      return;
+    }
+
+    long ageMs = System.currentTimeMillis() - Math.round(storedTimeMs);
+    SmartDashboard.putNumber("BrownoutRecovery/SavedAgeSec", ageMs / 1000.0);
+
+    if (ageMs < 0 || ageMs > kHeadingRestoreFreshMs) {
+      SmartDashboard.putString("BrownoutRecovery/Status", "Saved heading too old");
+      return;
+    }
+
+    Pose2d currentPose = drivetrain.getState().Pose;
+    Pose2d restoredPose =
+        new Pose2d(currentPose.getTranslation(), Rotation2d.fromDegrees(storedHeadingDeg));
+    drivetrain.resetPose(restoredPose);
+
+    SmartDashboard.putString("BrownoutRecovery/Status", "Restored saved heading");
+    SmartDashboard.putNumber("BrownoutRecovery/RestoredHeadingDeg", storedHeadingDeg);
+
+    DriverStation.reportWarning(
+        String.format(
+            "Restored heading %.1f deg after reboot/brownout recovery",
+            storedHeadingDeg),
+        false);
   }
 
   public Command getAutonomousCommand() {

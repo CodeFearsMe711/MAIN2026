@@ -9,6 +9,7 @@ import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
 import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -70,12 +71,18 @@ public class Robot extends TimedRobot {
     camera.setPixelFormat(PixelFormat.kYUYV);
     camera.setResolution(320, 240);
     camera.setFPS(20);
+
+    m_robotContainer.restoreHeadingAfterBrownout();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
 
+    m_robotContainer.updateBrownoutHeadingCapture(
+        RobotController.getBatteryVoltage(),
+        RobotController.isBrownedOut());
+    m_robotContainer.persistHeadingForBrownoutRecovery();
     m_robotContainer.updateVisionFusion();
   }
 
