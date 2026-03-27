@@ -296,7 +296,25 @@ public class ConnectorXLeds extends SubsystemBase {
       teamB = 0;
     }
 
-    setAll(teamR, teamG, teamB);
+    if (DriverStation.isDisabled()) {
+      setAll(teamR, teamG, teamB);
+    } else if (fastPreActive) {
+      if (isBlinkOn(kFastBlinkPeriodSec)) {
+        setAll(teamR, teamG, teamB);
+      } else {
+        setAll(0, 0, 0);
+      }
+    } else if (preActive) {
+      if (isBlinkOn(kBlinkPeriodSec)) {
+        setAll(teamR, teamG, teamB);
+      } else {
+        setAll(0, 0, 0);
+      }
+    } else if (hubActive) {
+      setAll(teamR, teamG, teamB);
+    } else {
+      setAll(0, 0, 0);
+    }
 
     try {
       direct.update(buffer);
