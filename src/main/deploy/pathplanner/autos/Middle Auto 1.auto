@@ -57,9 +57,22 @@
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "parallel",
                       "data": {
-                        "pathName": "5.1"
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "IntakeArmDown"
+                            }
+                          },
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "5.1"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -70,25 +83,6 @@
                             "type": "path",
                             "data": {
                               "pathName": "5.2"
-                            }
-                          },
-                          {
-                            "type": "sequential",
-                            "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 1.5
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "IntakeArmDown"
-                                  }
-                                }
-                              ]
                             }
                           }
                         ]
