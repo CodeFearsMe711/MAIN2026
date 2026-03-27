@@ -31,7 +31,7 @@
                           {
                             "type": "named",
                             "data": {
-                              "name": "IntakeArmDown"
+                              "name": "LilJohnIntakeArmDownRecover"
                             }
                           }
                         ]
@@ -97,27 +97,14 @@
                                         "data": {
                                           "name": "IntakeArmUp"
                                         }
+                                      },
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "ClimberUp"
+                                        }
                                       }
                                     ]
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "sequential",
-                            "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 1.75
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "ClimberUp"
                                   }
                                 }
                               ]
