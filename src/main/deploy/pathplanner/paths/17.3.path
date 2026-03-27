@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.180900584795321,
-        "y": 3.4992865497076027
+        "x": 2.0429941520467834,
+        "y": 3.6000643274853807
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.9882132304152391,
-        "y": 3.516161164714118
+        "x": 0.8503067976667016,
+        "y": 3.6169389424918963
       },
       "isLocked": false,
       "linkedName": "17.2"
     },
     {
       "anchor": {
-        "x": 1.130690058479532,
-        "y": 3.4992865497076027
+        "x": 1.1466023391812867,
+        "y": 3.6000643274853807
       },
       "prevControl": {
-        "x": 1.7423070490173183,
-        "y": 3.505124630818826
+        "x": 1.758219329719073,
+        "y": 3.605902408596604
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": "Lil John SUPERSIZED",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 6.58194465517806
+    "rotation": 9.162347045721626
   },
   "useDefaultConstraints": false
 }
