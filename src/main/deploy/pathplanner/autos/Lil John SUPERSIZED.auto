@@ -1,4 +1,4 @@
-{
+after this merge{
   "version": "2025.0",
   "command": {
     "type": "sequential",
