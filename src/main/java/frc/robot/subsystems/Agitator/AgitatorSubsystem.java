@@ -34,7 +34,7 @@ public class AgitatorSubsystem extends SubsystemBase {
   }
 
   public void setReverseVoltage(double volts) {
-    motor.setControl(voltageReq.withOutput(Math.abs(volts)));
+    motor.setControl(voltageReq.withOutput(-Math.abs(volts)));
   }
 
   public void stop() {

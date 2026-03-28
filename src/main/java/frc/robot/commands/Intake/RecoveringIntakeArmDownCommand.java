@@ -26,8 +26,8 @@ public class RecoveringIntakeArmDownCommand extends Command {
   private double tolDeg;
   private double attemptTimeoutSec;
   private double clearTimeoutSec;
-  private double feederReverseVolts;
-  private double agitatorReverseVolts;
+  private double feederReverseRps;
+  private double agitatorReverseRps;
 
   public RecoveringIntakeArmDownCommand(
       IntakeArmSubsystem arm,
@@ -45,8 +45,9 @@ public class RecoveringIntakeArmDownCommand extends Command {
     tolDeg = SmartDashboard.getNumber("IntakeArm/CompleteTolDeg", IntakeArmConstants.kToleranceDeg);
     attemptTimeoutSec = SmartDashboard.getNumber("LilJohnIntakeArmAttemptTimeoutSec", 1.5);
     clearTimeoutSec = SmartDashboard.getNumber("LilJohnIntakeArmClearTimeoutSec", 0.5);
-    feederReverseVolts = SmartDashboard.getNumber("LilJohnIntakeArmClearFeederReverseVolts", 10.0);
-    agitatorReverseVolts = SmartDashboard.getNumber("LilJohnIntakeArmClearAgitatorReverseVolts", 10.0);
+    feederReverseRps = SmartDashboard.getNumber("ShooterFeedReversePresetRPS", 20.0);
+    agitatorReverseRps =
+        Math.abs(SmartDashboard.getNumber("Negative Agitator/TargetRPS", -20.0));
 
     state = State.ATTEMPT;
     timer.restart();
@@ -80,8 +81,8 @@ public class RecoveringIntakeArmDownCommand extends Command {
 
       case CLEAR:
         arm.setGoalDegrees(downDeg);
-        feeder.setReverseVoltage(feederReverseVolts);
-        agitator.setReverseVoltage(agitatorReverseVolts);
+        feeder.setReverseRPS(feederReverseRps);
+        agitator.setReverseRPS(agitatorReverseRps);
         if (timer.hasElapsed(clearTimeoutSec)) {
           feeder.stop();
           agitator.stop();

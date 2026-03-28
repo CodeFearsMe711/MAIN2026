@@ -371,8 +371,6 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
     SmartDashboard.putNumber("LilJohnIntakeArmAttemptTimeoutSec", 1.5);
     SmartDashboard.putNumber("LilJohnIntakeArmClearTimeoutSec", 0.5);
-    SmartDashboard.putNumber("LilJohnIntakeArmClearFeederReverseVolts", 10.0);
-    SmartDashboard.putNumber("LilJohnIntakeArmClearAgitatorReverseVolts", 10.0);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearTriggered", false);
     SmartDashboard.putNumber("LilJohnIntakeArmClearCount", 0.0);
