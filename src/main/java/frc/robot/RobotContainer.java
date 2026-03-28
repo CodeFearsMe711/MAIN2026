@@ -37,6 +37,7 @@ import frc.robot.commands.AimHubTagOverride;
 import frc.robot.commands.Climber.ManualClimberCommand;
 import frc.robot.commands.Climber.SetClimberPositionCommand;
 import frc.robot.commands.Intake.IntakeArmCommand;
+import frc.robot.commands.Intake.RecoveringIntakeArmDownCommand;
 import frc.robot.commands.NamedCommands.NamedAgitator;
 import frc.robot.commands.NamedCommands.NamedIntake;
 import frc.robot.commands.NamedCommands.NamedShooter;
@@ -218,6 +219,13 @@ public class RobotContainer {
             SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
 
     NamedCommands.registerCommand(
+        "LilJohnIntakeArmDownRecover",
+        new RecoveringIntakeArmDownCommand(
+            m_intakeArmSubsystem,
+            m_shooterFeederSubsytem,
+            m_agitatorsubsystem));
+
+    NamedCommands.registerCommand(
         "ClimberUp",
         new SetClimberPositionCommand(m_ClimberSubsystem, 1500));
 
@@ -354,6 +362,10 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
+    SmartDashboard.putNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.0);
+    SmartDashboard.putNumber("LilJohn/IntakeArmClearTimeoutSec", 1.0);
+    SmartDashboard.putNumber("LilJohn/IntakeArmClearFeederReverseRPS", -20.0);
+    SmartDashboard.putNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", -20.0);
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {
