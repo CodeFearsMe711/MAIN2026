@@ -1,6 +1,7 @@
 package frc.robot.subsystems.Shooter;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -10,6 +11,7 @@ public class ShooterFeederSubsytem extends SubsystemBase {
     
      private final TalonFX motor = new TalonFX(36);
   private final VelocityVoltage velocityReq = new VelocityVoltage(0);
+  private final VoltageOut voltageReq = new VoltageOut(0);
 
   public ShooterFeederSubsytem() {
     TalonFXConfiguration cfg = new TalonFXConfiguration();
@@ -29,6 +31,10 @@ public class ShooterFeederSubsytem extends SubsystemBase {
 
   public void setReverseRPS(double rps) {
     setRPS(-Math.abs(rps));
+  }
+
+  public void setReverseVoltage(double volts) {
+    motor.setControl(voltageReq.withOutput(Math.abs(volts)));
   }
 
   public void stop() {
