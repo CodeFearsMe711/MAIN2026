@@ -366,6 +366,8 @@ public class RobotContainer {
     SmartDashboard.putNumber("LilJohn/IntakeArmClearTimeoutSec", 0.5);
     SmartDashboard.putNumber("LilJohn/IntakeArmClearFeederReverseRPS", 40.0);
     SmartDashboard.putNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", 30.0);
+    SmartDashboard.putBoolean("LilJohn/IntakeArmClearActive", false);
+    SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Idle");
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {
