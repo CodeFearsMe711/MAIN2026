@@ -44,12 +44,13 @@ public class RecoveringIntakeArmDownCommand extends Command {
     tolDeg = SmartDashboard.getNumber("IntakeArm/CompleteTolDeg", IntakeArmConstants.kToleranceDeg);
     attemptTimeoutSec = SmartDashboard.getNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.5);
     clearTimeoutSec = SmartDashboard.getNumber("LilJohn/IntakeArmClearTimeoutSec", 0.5);
-    feederReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearFeederReverseRPS", 20.0);
-    agitatorReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", 20.0);
+    feederReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearFeederReverseRPS", 40.0);
+    agitatorReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", 30.0);
 
     state = State.ATTEMPT;
     timer.restart();
     arm.setGoalDegrees(downDeg);
+    SmartDashboard.putBoolean("LilJohn/IntakeArmClearActive", false);
     SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Trying intake arm down");
   }
 
@@ -64,6 +65,7 @@ public class RecoveringIntakeArmDownCommand extends Command {
         } else if (timer.hasElapsed(attemptTimeoutSec)) {
           state = State.CLEAR;
           timer.restart();
+          SmartDashboard.putBoolean("LilJohn/IntakeArmClearActive", true);
           SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Clearing intake arm");
         }
         break;
@@ -75,6 +77,7 @@ public class RecoveringIntakeArmDownCommand extends Command {
         if (timer.hasElapsed(clearTimeoutSec)) {
           feeder.stop();
           agitator.stop();
+          SmartDashboard.putBoolean("LilJohn/IntakeArmClearActive", false);
           state = State.DONE;
           SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Clear finished, continuing");
         }
@@ -94,6 +97,7 @@ public class RecoveringIntakeArmDownCommand extends Command {
   public void end(boolean interrupted) {
     feeder.stop();
     agitator.stop();
+    SmartDashboard.putBoolean("LilJohn/IntakeArmClearActive", false);
     arm.holdCurrentPosition();
     if (interrupted) {
       SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Recovery interrupted");
