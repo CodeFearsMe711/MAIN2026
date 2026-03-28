@@ -226,6 +226,13 @@ public class RobotContainer {
             m_agitatorsubsystem));
 
     NamedCommands.registerCommand(
+        "LilJohnDown",
+        new RecoveringIntakeArmDownCommand(
+            m_intakeArmSubsystem,
+            m_shooterFeederSubsytem,
+            m_agitatorsubsystem));
+
+    NamedCommands.registerCommand(
         "ClimberUp",
         new SetClimberPositionCommand(m_ClimberSubsystem, 1500));
 
@@ -362,10 +369,10 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
-    SmartDashboard.putNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.5);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearTimeoutSec", 0.5);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearFeederReverseRPS", 40.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", 30.0);
+    SmartDashboard.putNumber("LilJohnIntakeArmAttemptTimeoutSec", 1.5);
+    SmartDashboard.putNumber("LilJohnIntakeArmClearTimeoutSec", 0.5);
+    SmartDashboard.putNumber("LilJohnIntakeArmClearFeederReverseRPS", 40.0);
+    SmartDashboard.putNumber("LilJohnIntakeArmClearAgitatorReverseRPS", 30.0);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
     SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Idle");
     m_intakeArmSubsystem.setDefaultCommand(
