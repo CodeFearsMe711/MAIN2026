@@ -308,7 +308,7 @@ public class RobotContainer {
     SmartDashboard.putNumber("ShooterLowPresetRPS", 75.0);
     SmartDashboard.putNumber("ShooterFastPresetRPS", 100.0);
     SmartDashboard.putNumber("ShooterReverseMediumPresetRPS", -45.0);
-    SmartDashboard.putNumber("ShooterFeedReversePresetRPS", -20.0);
+    SmartDashboard.putNumber("ShooterFeedReversePresetRPS", 20.0);
 
     m_driverController.a().whileTrue(
         Commands.runEnd(
@@ -320,8 +320,8 @@ public class RobotContainer {
             () -> {
                 m_shootersubsystem.setManualRPS(
                     SmartDashboard.getNumber("ShooterReverseMediumPresetRPS", -45.0));
-                m_shooterFeederSubsytem.setRPS(
-                    SmartDashboard.getNumber("ShooterFeedReversePresetRPS", -20.0));
+                m_shooterFeederSubsytem.setReverseRPS(
+                    SmartDashboard.getNumber("ShooterFeedReversePresetRPS", 20.0));
             },
             () -> {
                 m_shootersubsystem.clearManualRPS();
@@ -362,10 +362,10 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
-    SmartDashboard.putNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearTimeoutSec", 1.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearFeederReverseRPS", -20.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", -20.0);
+    SmartDashboard.putNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.5);
+    SmartDashboard.putNumber("LilJohn/IntakeArmClearTimeoutSec", 0.5);
+    SmartDashboard.putNumber("LilJohn/IntakeArmClearFeederReverseRPS", 20.0);
+    SmartDashboard.putNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", 20.0);
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {

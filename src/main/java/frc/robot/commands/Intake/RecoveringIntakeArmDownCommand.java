@@ -12,7 +12,6 @@ public class RecoveringIntakeArmDownCommand extends Command {
   private enum State {
     ATTEMPT,
     CLEAR,
-    RETRY,
     DONE
   }
 
@@ -43,10 +42,10 @@ public class RecoveringIntakeArmDownCommand extends Command {
   public void initialize() {
     downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
     tolDeg = SmartDashboard.getNumber("IntakeArm/CompleteTolDeg", IntakeArmConstants.kToleranceDeg);
-    attemptTimeoutSec = SmartDashboard.getNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.0);
-    clearTimeoutSec = SmartDashboard.getNumber("LilJohn/IntakeArmClearTimeoutSec", 1.0);
-    feederReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearFeederReverseRPS", -20.0);
-    agitatorReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", -20.0);
+    attemptTimeoutSec = SmartDashboard.getNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.5);
+    clearTimeoutSec = SmartDashboard.getNumber("LilJohn/IntakeArmClearTimeoutSec", 0.5);
+    feederReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearFeederReverseRPS", 20.0);
+    agitatorReverseRps = SmartDashboard.getNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", 20.0);
 
     state = State.ATTEMPT;
     timer.restart();
@@ -71,22 +70,13 @@ public class RecoveringIntakeArmDownCommand extends Command {
 
       case CLEAR:
         arm.setGoalDegrees(downDeg);
-        feeder.setRPS(feederReverseRps);
-        agitator.setRPS(agitatorReverseRps);
+        feeder.setReverseRPS(feederReverseRps);
+        agitator.setReverseRPS(agitatorReverseRps);
         if (timer.hasElapsed(clearTimeoutSec)) {
           feeder.stop();
           agitator.stop();
-          state = State.RETRY;
-          timer.restart();
-          SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Retrying intake arm down");
-        }
-        break;
-
-      case RETRY:
-        arm.setGoalDegrees(downDeg);
-        if (arm.atGoalRangeDeg(downDeg, tolDeg) || timer.hasElapsed(attemptTimeoutSec)) {
           state = State.DONE;
-          SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Recovery finished");
+          SmartDashboard.putString("LilJohn/IntakeArmRecoveryStatus", "Clear finished, continuing");
         }
         break;
 

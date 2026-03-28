@@ -27,6 +27,10 @@ public class AgitatorSubsystem extends SubsystemBase {
     motor.setControl(velocityReq.withVelocity(-rps));
   }
 
+  public void setReverseRPS(double rps) {
+    setRPS(-Math.abs(rps));
+  }
+
   public void stop() {
     setRPS(0);
   }
