@@ -72,7 +72,6 @@ public class Robot extends TimedRobot {
     camera.setResolution(320, 240);
     camera.setFPS(20);
 
-    m_robotContainer.restoreHeadingAfterBrownout();
   }
 
   @Override
@@ -94,6 +93,7 @@ public class Robot extends TimedRobot {
     }
 
     CommandScheduler.getInstance().cancelAll();
+    m_robotContainer.restoreHeadingAfterBrownout();
     m_robotContainer.getDrivetrain().seedFieldCentric();
   }
 
