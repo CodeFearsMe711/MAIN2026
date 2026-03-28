@@ -370,10 +370,12 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
     SmartDashboard.putNumber("LilJohnIntakeArmAttemptTimeoutSec", 1.5);
+    SmartDashboard.putNumber("LilJohnIntakeArmRequiredTolDeg", 0.5);
     SmartDashboard.putNumber("LilJohnIntakeArmClearTimeoutSec", 0.5);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearTriggered", false);
     SmartDashboard.putNumber("LilJohnIntakeArmClearCount", 0.0);
+    SmartDashboard.putNumber("LilJohnIntakeArmErrorDeg", 0.0);
     SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Idle");
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(

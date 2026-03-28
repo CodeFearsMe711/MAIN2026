@@ -29,6 +29,24 @@ public class RecoveringIntakeArmDownCommand extends Command {
   private double feederReverseRps;
   private double agitatorReverseRps;
 
+  private void startClearPhase() {
+    feeder.setReverseRPS(feederReverseRps);
+    agitator.setRPS(-agitatorReverseRps);
+    SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", true);
+    SmartDashboard.putBoolean("LilJohnIntakeArmClearTriggered", true);
+    SmartDashboard.putNumber(
+        "LilJohnIntakeArmClearCount",
+        SmartDashboard.getNumber("LilJohnIntakeArmClearCount", 0.0) + 1.0);
+    SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Clearing intake arm");
+    DriverStation.reportWarning("LilJohn intake-arm clear phase active", false);
+  }
+
+  private void stopClearPhase() {
+    feeder.stop();
+    agitator.stop();
+    SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
+  }
+
   public RecoveringIntakeArmDownCommand(
       IntakeArmSubsystem arm,
       ShooterFeederSubsytem feeder,
@@ -42,7 +60,7 @@ public class RecoveringIntakeArmDownCommand extends Command {
   @Override
   public void initialize() {
     downDeg = SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
-    tolDeg = SmartDashboard.getNumber("IntakeArm/CompleteTolDeg", IntakeArmConstants.kToleranceDeg);
+    tolDeg = SmartDashboard.getNumber("LilJohnIntakeArmRequiredTolDeg", 0.5);
     attemptTimeoutSec = SmartDashboard.getNumber("LilJohnIntakeArmAttemptTimeoutSec", 1.5);
     clearTimeoutSec = SmartDashboard.getNumber("LilJohnIntakeArmClearTimeoutSec", 0.5);
     feederReverseRps = SmartDashboard.getNumber("ShooterFeedReversePresetRPS", 20.0);
@@ -54,6 +72,7 @@ public class RecoveringIntakeArmDownCommand extends Command {
     arm.setGoalDegrees(downDeg);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
     SmartDashboard.putBoolean("LilJohnIntakeArmClearTriggered", false);
+    SmartDashboard.putNumber("LilJohnIntakeArmErrorDeg", Math.abs(arm.getDegrees() - downDeg));
     SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Trying intake arm down");
     DriverStation.reportWarning("LilJohn intake-arm recovery command initialized", false);
   }
@@ -63,30 +82,25 @@ public class RecoveringIntakeArmDownCommand extends Command {
     switch (state) {
       case ATTEMPT:
         arm.setGoalDegrees(downDeg);
+        SmartDashboard.putNumber(
+            "LilJohnIntakeArmErrorDeg",
+            Math.abs(arm.getDegrees() - downDeg));
         if (arm.atGoalRangeDeg(downDeg, tolDeg)) {
           state = State.DONE;
           SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Intake arm reached target");
         } else if (timer.hasElapsed(attemptTimeoutSec)) {
           state = State.CLEAR;
           timer.restart();
-          SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", true);
-          SmartDashboard.putBoolean("LilJohnIntakeArmClearTriggered", true);
-          SmartDashboard.putNumber(
-              "LilJohnIntakeArmClearCount",
-              SmartDashboard.getNumber("LilJohnIntakeArmClearCount", 0.0) + 1.0);
-          SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Clearing intake arm");
-          DriverStation.reportWarning("LilJohn intake-arm clear phase active", false);
+          startClearPhase();
         }
         break;
 
       case CLEAR:
         arm.setGoalDegrees(downDeg);
         feeder.setReverseRPS(feederReverseRps);
-        agitator.setReverseRPS(agitatorReverseRps);
+        agitator.setRPS(-agitatorReverseRps);
         if (timer.hasElapsed(clearTimeoutSec)) {
-          feeder.stop();
-          agitator.stop();
-          SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
+          stopClearPhase();
           state = State.DONE;
           SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Clear finished, continuing");
         }
@@ -104,9 +118,7 @@ public class RecoveringIntakeArmDownCommand extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    feeder.stop();
-    agitator.stop();
-    SmartDashboard.putBoolean("LilJohnIntakeArmClearActive", false);
+    stopClearPhase();
     arm.holdCurrentPosition();
     if (interrupted) {
       SmartDashboard.putString("LilJohnIntakeArmRecoveryStatus", "Recovery interrupted");
