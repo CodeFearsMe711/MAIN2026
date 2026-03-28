@@ -37,7 +37,6 @@ import frc.robot.commands.AimHubTagOverride;
 import frc.robot.commands.Climber.ManualClimberCommand;
 import frc.robot.commands.Climber.SetClimberPositionCommand;
 import frc.robot.commands.Intake.IntakeArmCommand;
-import frc.robot.commands.Intake.RecoveringIntakeArmDownCommand;
 import frc.robot.commands.NamedCommands.NamedAgitator;
 import frc.robot.commands.NamedCommands.NamedIntake;
 import frc.robot.commands.NamedCommands.NamedShooter;
@@ -214,10 +213,9 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "IntakeArmDown",
-        new RecoveringIntakeArmDownCommand(
+        new IntakeArmCommand(
             m_intakeArmSubsystem,
-            m_shooterFeederSubsytem,
-            m_agitatorsubsystem));
+            SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA)));
 
     NamedCommands.registerCommand(
         "ClimberUp",
@@ -356,11 +354,6 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
-    SmartDashboard.putBoolean("IntakeArm/EnableAutoRecovery", true);
-    SmartDashboard.putNumber("IntakeArm/AutoAttemptTimeoutSec", 1.0);
-    SmartDashboard.putNumber("IntakeArm/AutoClearTimeoutSec", 1.0);
-    SmartDashboard.putNumber("IntakeArm/AutoClearFeederReverseRPS", -20.0);
-    SmartDashboard.putNumber("IntakeArm/AutoClearAgitatorReverseRPS", -20.0);
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {
