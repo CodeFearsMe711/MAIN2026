@@ -2,8 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.Set;
-
 import org.photonvision.EstimatedRobotPose;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -136,6 +134,10 @@ public class RobotContainer {
   private static final long kHeadingRestoreFreshMs = 15_000L;
   private static final double kBrownoutRiskVoltage = 10.0;
   private static final double kBrownoutSaveWindowSec = 5.0;
+  private static final double kLilJohnIntakeArmAttemptTimeoutSec = 1.0;
+  private static final double kLilJohnIntakeArmClearTimeoutSec = 1.0;
+  private static final double kLilJohnIntakeArmClearFeederReverseRps = -20.0;
+  private static final double kLilJohnIntakeArmClearAgitatorReverseRps = -20.0;
 
   private RobotConfig m_robotConfig;
   private final SendableChooser<Command> m_autoChooser;
@@ -238,65 +240,58 @@ public class RobotContainer {
   }
 
   private Command createLilJohnIntakeArmDownRecoverCommand() {
-    return Commands.defer(
-        () -> {
-          double downDeg =
-              SmartDashboard.getNumber("IntakeArm/DownDeg", IntakeArmConstants.kPosDegA);
-          double tolDeg =
-              SmartDashboard.getNumber("IntakeArm/CompleteTolDeg", IntakeArmConstants.kToleranceDeg);
-          double attemptTimeoutSec =
-              SmartDashboard.getNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.0);
-          double clearTimeoutSec =
-              SmartDashboard.getNumber("LilJohn/IntakeArmClearTimeoutSec", 1.0);
-          double feederReverseRps =
-              SmartDashboard.getNumber("LilJohn/IntakeArmClearFeederReverseRPS", -20.0);
-          double agitatorReverseRps =
-              SmartDashboard.getNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", -20.0);
+    double downDeg = IntakeArmConstants.kPosDegA;
+    double tolDeg = IntakeArmConstants.kToleranceDeg;
 
-          Command firstAttempt = new IntakeArmCommand(m_intakeArmSubsystem, downDeg)
-              .withTimeout(attemptTimeoutSec);
+    Command firstAttempt =
+        new IntakeArmCommand(m_intakeArmSubsystem, downDeg)
+            .withTimeout(kLilJohnIntakeArmAttemptTimeoutSec);
 
-          Command clearAndRetry =
-              Commands.sequence(
-                  Commands.runOnce(
-                      () -> SmartDashboard.putString(
-                          "LilJohn/IntakeArmRecoveryStatus",
-                          "Clearing intake arm and retrying")),
-                  Commands.parallel(
-                          Commands.run(
-                                  () -> m_intakeArmSubsystem.setGoalDegrees(downDeg),
-                                  m_intakeArmSubsystem)
-                              .withTimeout(clearTimeoutSec),
-                          Commands.runEnd(
-                                  () -> {
-                                    m_shooterFeederSubsytem.setRPS(feederReverseRps);
-                                    m_agitatorsubsystem.setRPS(agitatorReverseRps);
-                                  },
-                                  () -> {
-                                    m_shooterFeederSubsytem.stop();
-                                    m_agitatorsubsystem.stop();
-                                  },
-                                  m_shooterFeederSubsytem,
-                                  m_agitatorsubsystem)
-                              .withTimeout(clearTimeoutSec))
-                      .withTimeout(clearTimeoutSec),
-                  new IntakeArmCommand(m_intakeArmSubsystem, downDeg).withTimeout(attemptTimeoutSec));
+    Command clearAndRetry =
+        Commands.sequence(
+            Commands.runOnce(
+                () ->
+                    SmartDashboard.putString(
+                        "LilJohn/IntakeArmRecoveryStatus",
+                        "Clearing intake arm and retrying")),
+            Commands.parallel(
+                    Commands.run(
+                            () -> m_intakeArmSubsystem.setGoalDegrees(downDeg),
+                            m_intakeArmSubsystem)
+                        .withTimeout(kLilJohnIntakeArmClearTimeoutSec),
+                    Commands.runEnd(
+                            () -> {
+                              m_shooterFeederSubsytem.setRPS(
+                                  kLilJohnIntakeArmClearFeederReverseRps);
+                              m_agitatorsubsystem.setRPS(
+                                  kLilJohnIntakeArmClearAgitatorReverseRps);
+                            },
+                            () -> {
+                              m_shooterFeederSubsytem.stop();
+                              m_agitatorsubsystem.stop();
+                            },
+                            m_shooterFeederSubsytem,
+                            m_agitatorsubsystem)
+                        .withTimeout(kLilJohnIntakeArmClearTimeoutSec))
+                .withTimeout(kLilJohnIntakeArmClearTimeoutSec),
+            new IntakeArmCommand(m_intakeArmSubsystem, downDeg)
+                .withTimeout(kLilJohnIntakeArmAttemptTimeoutSec));
 
-          return Commands.sequence(
-              Commands.runOnce(
-                  () -> SmartDashboard.putString(
-                      "LilJohn/IntakeArmRecoveryStatus",
-                      "Trying intake arm down")),
-              firstAttempt,
-              Commands.either(
-                  Commands.runOnce(
-                      () -> SmartDashboard.putString(
-                          "LilJohn/IntakeArmRecoveryStatus",
-                          "Intake arm reached target")),
-                  clearAndRetry,
-                  () -> m_intakeArmSubsystem.atGoalRangeDeg(downDeg, tolDeg)));
-        },
-        Set.of(m_intakeArmSubsystem, m_shooterFeederSubsytem, m_agitatorsubsystem));
+    return Commands.sequence(
+        Commands.runOnce(
+            () ->
+                SmartDashboard.putString(
+                    "LilJohn/IntakeArmRecoveryStatus",
+                    "Trying intake arm down")),
+        firstAttempt,
+        Commands.either(
+            Commands.runOnce(
+                () ->
+                    SmartDashboard.putString(
+                        "LilJohn/IntakeArmRecoveryStatus",
+                        "Intake arm reached target")),
+            clearAndRetry,
+            () -> m_intakeArmSubsystem.atGoalRangeDeg(downDeg, tolDeg)));
   }
 
   public IntakeArmSubsystem getIntakeArmSubsystem() {
@@ -423,11 +418,6 @@ public class RobotContainer {
     SmartDashboard.putNumber("IntakeArm/TeleopAccelRps2", IntakeArmConstants.kAccelRps2_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableCruiseRps", IntakeArmConstants.kEnableCruiseRps_Arm);
     SmartDashboard.putNumber("IntakeArm/EnableAccelRps2", IntakeArmConstants.kEnableAccelRps2_Arm);
-    SmartDashboard.putNumber("LilJohn/IntakeArmAttemptTimeoutSec", 1.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearTimeoutSec", 1.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearFeederReverseRPS", -20.0);
-    SmartDashboard.putNumber("LilJohn/IntakeArmClearAgitatorReverseRPS", -20.0);
-
     m_intakeArmSubsystem.setDefaultCommand(
         Commands.run(
             () -> {
